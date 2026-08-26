@@ -1,0 +1,9 @@
+{
+  "total": 1296,
+  "kept": 868,
+  "removed": {
+    "too_short": 294,
+    "duplicate": 50,
+    "non_english": 84
+  }
+}

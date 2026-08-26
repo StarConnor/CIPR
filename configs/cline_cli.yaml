@@ -1,0 +1,193 @@
+# Cline CLI Agent Configuration
+# This config automates the Cline CLI coding agent in headless Docker containers
+
+name: cline_cli
+display_name: Cline CLI
+version: "1.0"
+driver: cli  # Use CLI controller instead of IDE
+ # Runtime credentials are resolved from environment variables. Never put a
+ # real credential in a version-controlled agent configuration.
+llm_api_key: ""
+llm_base_url: ""
+llm_model: gpt-4o-mini
+
+# ============================================================
+# WORKFLOWS - Multi-step CLI automation
+# ============================================================
+workflows:
+
+  # Start Cline CLI session with a task
+  send_and_export:
+    description: "Send a task to Cline CLI, handle interactions, and export chat history"
+    parameters:
+      - name: message
+        type: string
+        required: true
+      - name: model
+        type: string
+        required: True
+        default: "deepseek-v4-flash"
+      - name: api_key
+        type: string
+        required: True
+        default: ""
+      - name: api_base_url
+        type: string
+        required: True
+        default: ""
+      - name: timeout_seconds
+        type: int
+        default: 600
+      - name: auto_approve
+        type: bool
+        default: true
+      - name: task_dir
+        type: string
+        default: "/home/devuser/.cline/data/sessions"
+        required: false
+    steps:
+      - type: update_json_file
+        file_path: "/home/devuser/.cline/data/settings/providers.json"
+        value:
+          providers.lmstudio.settings.model: "{{model}}"
+          providers.lmstudio.settings.baseUrl: "{{api_base_url}}"
+          providers.lmstudio.settings.apiKey: "{{api_key}}"
+        output: settings_updated
+      
+      - type: cli_start
+        command: ["cline", "-P", "lmstudio", "--verbose", "-m", "{{model}}", "{{message}}"]
+        rows: 30
+        cols: 100
+        output: started
+      
+      - type: time_mark
+        output: start_time
+      
+      - type: time_mark
+        output: start_llm_time
+      
+      - type: time_mark
+        output: last_interaction_time
+      
+      # Main loop - monitor and interact
+      - id: poll_state
+        type: wait
+        duration: 0.5
+      
+      # Check global timeout
+      - type: check_timeout
+        start_time: start_time
+        value: "{{timeout_seconds}}"
+        output: timed_out
+      
+      - type: jump_to
+        target_id: cleanup
+        condition: "timed_out == True"
+      
+      - type: check_timeout
+        start_time: start_llm_time
+        value: 300  # 5 minute timeout for LLM response
+        output: llm_timed_out
+      
+      - type: time_mark
+        output: start_llm_time
+        when: "llm_timed_out == True"
+
+      # Get current screen state
+      - type: cli_screen_text
+        output: screen_text
+      
+      # Check for completion - "Cline is ready for your message"
+      - type: set_output
+        key: is_end
+        value: "'── finished ' in screen_text"
+      
+      - type: set_output
+        key: need_run_command
+        value: "'Run Command (1)' in screen_text"
+      
+      - type: cli_input
+        value: "1"
+        when: "need_run_command == True"
+      
+      - type: jump_to
+        target_id: export_history
+        condition: "is_end == True"
+      
+      # Auto-approve prompts if enabled
+      - type: time_mark
+        output: current_time
+      
+      - type: set_output
+        key: time_since_interaction
+        value: "current_time - last_interaction_time"
+      
+      # Check for approval prompts
+      - type: set_output
+        key: needs_approval
+        value: False
+      
+      - type: set_output
+        key: needs_approval
+        value: "auto_approve == True and ('Let Cline use this tool?' in screen_text or 'Let Cline run this command?' in screen_text) and time_since_interaction > 2.0"
+      
+      # Send approval (Down arrow + Enter to select "Yes, don't ask again")
+      - type: cli_input
+        value: "\x1b[B"  # Down arrow
+        when: "needs_approval == True"
+      
+      - type: wait
+        duration: 0.1
+        when: "needs_approval == True"
+      
+      - type: cli_input
+        value: "\r"  # Enter
+        when: "needs_approval == True"
+      
+      - type: time_mark
+        output: last_interaction_time
+        when: "needs_approval == True"
+      
+      # Continue polling
+      - type: jump_to
+        target_id: poll_state
+      
+      # Export chat history
+      - id: export_history
+        type: wait
+        duration: 5.0
+      
+      - type: cli_input
+        value: "<CTRL+C>"
+      
+      - type: cli_input
+        value: "<CTRL+C>"
+
+      # Read chat history from latest task
+      - type: read_exported_chat
+        directory: "{{task_dir}}"
+        pattern: "*/*messages.json"
+        output: chat_history
+      
+      - type: jump_to
+        target_id: end
+      
+      # Cleanup on timeout
+      - id: cleanup
+        type: cli_stop
+      
+      - type: set_output
+        key: chat_history
+        value: "Task timed out"
+      
+      - id: end
+        type: log
+        level: "info"
+        value: "Cline CLI workflow completed"
+
+  # Close Cline session
+  close_session:
+    description: "Terminate Cline CLI session"
+    steps:
+      - type: cli_stop
+        output: stopped

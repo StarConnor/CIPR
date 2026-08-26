@@ -1,0 +1,19 @@
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "storage-driver": "overlay2",
+  "data-root": "/var/lib/docker",
+  "registry-mirrors": [
+    "https://docker.mirrors.ustc.edu.cn",
+    "https://hub-mirror.c.163.com"
+  ],
+  "insecure-registries": [],
+  "dns": ["8.8.8.8", "8.8.4.4"],
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "live-restore": true,
+  "debug": false,
+  "experimental": false
+}

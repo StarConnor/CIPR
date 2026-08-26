@@ -1,0 +1,221 @@
+2026-02-05T06:22:13.670Z [ERROR] Failed to save config with lock: Error: ENOENT: no such file or directory, lstat '/home/zfk/.claude.json'
+2026-02-05T06:22:13.671Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272533671
+2026-02-05T06:22:13.671Z [DEBUG] Setting permissions for new file: 600
+2026-02-05T06:22:13.671Z [DEBUG] Temp file written successfully, size: 82 bytes
+2026-02-05T06:22:13.671Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272533671 to /home/zfk/.claude.json
+2026-02-05T06:22:13.671Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:13.673Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272533673
+2026-02-05T06:22:13.674Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:13.674Z [DEBUG] Temp file written successfully, size: 130 bytes
+2026-02-05T06:22:13.674Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:13.674Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272533673 to /home/zfk/.claude.json
+2026-02-05T06:22:13.674Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:13.674Z [DEBUG] [init] configureGlobalMTLS starting
+2026-02-05T06:22:13.674Z [DEBUG] [init] configureGlobalMTLS complete
+2026-02-05T06:22:13.674Z [DEBUG] [init] configureGlobalAgents starting
+2026-02-05T06:22:13.675Z [DEBUG] [init] configureGlobalAgents complete
+2026-02-05T06:22:13.676Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272533676
+2026-02-05T06:22:13.676Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:13.676Z [DEBUG] Temp file written successfully, size: 167 bytes
+2026-02-05T06:22:13.676Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:13.676Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272533676 to /home/zfk/.claude.json
+2026-02-05T06:22:13.676Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:13.676Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272533676
+2026-02-05T06:22:13.677Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:13.677Z [DEBUG] Temp file written successfully, size: 202 bytes
+2026-02-05T06:22:13.677Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:13.677Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272533676 to /home/zfk/.claude.json
+2026-02-05T06:22:13.677Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:13.677Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272533677
+2026-02-05T06:22:13.677Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:13.677Z [DEBUG] Temp file written successfully, size: 238 bytes
+2026-02-05T06:22:13.677Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:13.677Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272533677 to /home/zfk/.claude.json
+2026-02-05T06:22:13.677Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:13.678Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272533678
+2026-02-05T06:22:13.678Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:13.678Z [DEBUG] Temp file written successfully, size: 275 bytes
+2026-02-05T06:22:13.678Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:13.678Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272533678 to /home/zfk/.claude.json
+2026-02-05T06:22:13.678Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:13.684Z [DEBUG] [STARTUP] Loading MCP configs...
+2026-02-05T06:22:13.687Z [DEBUG] [ToolSearch:optimistic] mode=tst-auto, ENABLE_TOOL_SEARCH=undefined, result=true
+2026-02-05T06:22:13.687Z [DEBUG] [STARTUP] Running setup()...
+2026-02-05T06:22:13.687Z [DEBUG] Found 0 plugins (0 enabled, 0 disabled)
+2026-02-05T06:22:13.688Z [DEBUG] Loading skills from: managed=/etc/claude-code/.claude/skills, user=/home/zfk/.claude/skills, project=[]
+2026-02-05T06:22:13.688Z [DEBUG] Error log sink initialized
+2026-02-05T06:22:13.689Z [DEBUG] getPluginSkills: Processing 0 enabled plugins
+2026-02-05T06:22:13.689Z [DEBUG] Total plugin skills loaded: 0
+2026-02-05T06:22:13.689Z [DEBUG] Total plugin commands loaded: 0
+2026-02-05T06:22:13.689Z [DEBUG] Registered 0 hooks from 0 plugins
+2026-02-05T06:22:13.694Z [DEBUG] [STARTUP] setup() completed in 7ms
+2026-02-05T06:22:13.694Z [DEBUG] [STARTUP] Loading commands and agents...
+2026-02-05T06:22:13.707Z [DEBUG] Total plugin agents loaded: 0
+2026-02-05T06:22:13.707Z [DEBUG] Loaded 0 unique skills (managed: 0, user: 0, project: 0, legacy commands: 0)
+2026-02-05T06:22:13.708Z [DEBUG] getSkills returning: 0 skill dir commands, 0 plugin skills, 2 bundled skills
+2026-02-05T06:22:13.708Z [DEBUG] [STARTUP] Commands and agents loaded in 14ms
+2026-02-05T06:22:13.708Z [DEBUG] [STARTUP] Running showSetupScreens()...
+2026-02-05T06:22:13.709Z [DEBUG] [render] initLayout starting
+2026-02-05T06:22:13.709Z [DEBUG] Layout engine: yoga
+2026-02-05T06:22:13.714Z [DEBUG] [Claude in Chrome] Found chrome profiles: Default
+2026-02-05T06:22:13.721Z [DEBUG] [render] initLayout complete
+2026-02-05T06:22:13.725Z [DEBUG] [keybindings] KeybindingSetup initialized with 100 bindings, 0 warnings
+2026-02-05T06:22:13.749Z [DEBUG] [keybindings] Skipping file watcher - user customization disabled
+2026-02-05T06:22:13.750Z [DEBUG] [render] first ink render: 589ms since process start
+2026-02-05T06:22:13.774Z [DEBUG] [Claude in Chrome] Extension not found in any browser
+2026-02-05T06:22:13.775Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272533775
+2026-02-05T06:22:13.775Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:13.775Z [DEBUG] Temp file written successfully, size: 318 bytes
+2026-02-05T06:22:13.775Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:13.775Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272533775 to /home/zfk/.claude.json
+2026-02-05T06:22:13.775Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.648Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534648
+2026-02-05T06:22:14.648Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.648Z [DEBUG] Temp file written successfully, size: 359 bytes
+2026-02-05T06:22:14.648Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.648Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534648 to /home/zfk/.claude.json
+2026-02-05T06:22:14.648Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.690Z [DEBUG] High write ratio: blit=0, write=2146 (100.0% writes), screen=36x154
+2026-02-05T06:22:14.701Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534701
+2026-02-05T06:22:14.701Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.701Z [DEBUG] Temp file written successfully, size: 535 bytes
+2026-02-05T06:22:14.701Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.701Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534701 to /home/zfk/.claude.json
+2026-02-05T06:22:14.701Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.702Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534702
+2026-02-05T06:22:14.702Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.702Z [DEBUG] Temp file written successfully, size: 571 bytes
+2026-02-05T06:22:14.702Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.702Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534702 to /home/zfk/.claude.json
+2026-02-05T06:22:14.702Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.702Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534702
+2026-02-05T06:22:14.702Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.702Z [DEBUG] Temp file written successfully, size: 599 bytes
+2026-02-05T06:22:14.702Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.702Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534702 to /home/zfk/.claude.json
+2026-02-05T06:22:14.702Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.703Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534703
+2026-02-05T06:22:14.703Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.703Z [DEBUG] Temp file written successfully, size: 632 bytes
+2026-02-05T06:22:14.703Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.703Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534703 to /home/zfk/.claude.json
+2026-02-05T06:22:14.703Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.703Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534703
+2026-02-05T06:22:14.703Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.703Z [DEBUG] Temp file written successfully, size: 684 bytes
+2026-02-05T06:22:14.703Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.703Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534703 to /home/zfk/.claude.json
+2026-02-05T06:22:14.703Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.704Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534704
+2026-02-05T06:22:14.704Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.704Z [DEBUG] Temp file written successfully, size: 723 bytes
+2026-02-05T06:22:14.704Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.704Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534704 to /home/zfk/.claude.json
+2026-02-05T06:22:14.704Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.704Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534704
+2026-02-05T06:22:14.704Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.704Z [DEBUG] Temp file written successfully, size: 762 bytes
+2026-02-05T06:22:14.704Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.704Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534704 to /home/zfk/.claude.json
+2026-02-05T06:22:14.704Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.705Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534705
+2026-02-05T06:22:14.705Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.705Z [DEBUG] Temp file written successfully, size: 800 bytes
+2026-02-05T06:22:14.705Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.705Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534705 to /home/zfk/.claude.json
+2026-02-05T06:22:14.705Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.706Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534706
+2026-02-05T06:22:14.706Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.706Z [DEBUG] Temp file written successfully, size: 832 bytes
+2026-02-05T06:22:14.706Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.706Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534706 to /home/zfk/.claude.json
+2026-02-05T06:22:14.706Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.706Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534706
+2026-02-05T06:22:14.706Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.706Z [DEBUG] Temp file written successfully, size: 862 bytes
+2026-02-05T06:22:14.706Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.706Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534706 to /home/zfk/.claude.json
+2026-02-05T06:22:14.706Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.706Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534706
+2026-02-05T06:22:14.706Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.707Z [DEBUG] Temp file written successfully, size: 895 bytes
+2026-02-05T06:22:14.707Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.707Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534706 to /home/zfk/.claude.json
+2026-02-05T06:22:14.707Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.707Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534707
+2026-02-05T06:22:14.707Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.707Z [DEBUG] Temp file written successfully, size: 947 bytes
+2026-02-05T06:22:14.707Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.707Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534707 to /home/zfk/.claude.json
+2026-02-05T06:22:14.707Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:14.707Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272534707
+2026-02-05T06:22:14.707Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:14.708Z [DEBUG] Temp file written successfully, size: 977 bytes
+2026-02-05T06:22:14.708Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:14.708Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272534707 to /home/zfk/.claude.json
+2026-02-05T06:22:14.708Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:15.617Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272535617
+2026-02-05T06:22:15.618Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:15.618Z [DEBUG] Temp file written successfully, size: 977 bytes
+2026-02-05T06:22:15.618Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:15.618Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272535617 to /home/zfk/.claude.json
+2026-02-05T06:22:15.618Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:15.618Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272535618
+2026-02-05T06:22:15.618Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:15.618Z [DEBUG] Temp file written successfully, size: 977 bytes
+2026-02-05T06:22:15.618Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:15.618Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272535618 to /home/zfk/.claude.json
+2026-02-05T06:22:15.618Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:15.623Z [DEBUG] High write ratio: blit=0, write=1222 (100.0% writes), screen=28x154
+2026-02-05T06:22:16.546Z [DEBUG] High write ratio: blit=0, write=1222 (100.0% writes), screen=28x154
+2026-02-05T06:22:19.789Z [DEBUG] High write ratio: blit=0, write=1428 (100.0% writes), screen=25x154
+2026-02-05T06:22:23.126Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272543126
+2026-02-05T06:22:23.126Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:23.126Z [DEBUG] Temp file written successfully, size: 977 bytes
+2026-02-05T06:22:23.126Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:23.126Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272543126 to /home/zfk/.claude.json
+2026-02-05T06:22:23.126Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:23.127Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272543127
+2026-02-05T06:22:23.127Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:23.127Z [DEBUG] Temp file written successfully, size: 977 bytes
+2026-02-05T06:22:23.127Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:23.127Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272543127 to /home/zfk/.claude.json
+2026-02-05T06:22:23.127Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:24.150Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272544150
+2026-02-05T06:22:24.150Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:24.150Z [DEBUG] Temp file written successfully, size: 1231 bytes
+2026-02-05T06:22:24.150Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:24.150Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272544150 to /home/zfk/.claude.json
+2026-02-05T06:22:24.150Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:25.102Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272545102
+2026-02-05T06:22:25.102Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:25.102Z [DEBUG] Temp file written successfully, size: 1359 bytes
+2026-02-05T06:22:25.102Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:25.102Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272545102 to /home/zfk/.claude.json
+2026-02-05T06:22:25.102Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:26.532Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272546532
+2026-02-05T06:22:26.532Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:26.532Z [DEBUG] Temp file written successfully, size: 1597 bytes
+2026-02-05T06:22:26.532Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:26.532Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272546532 to /home/zfk/.claude.json
+2026-02-05T06:22:26.532Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:26.533Z [DEBUG] Skipping Notification:auth_success hook execution - workspace trust not accepted
+2026-02-05T06:22:35.086Z [DEBUG] High write ratio: blit=0, write=1160 (100.0% writes), screen=28x154
+2026-02-05T06:22:37.852Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272557852
+2026-02-05T06:22:37.852Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:37.852Z [DEBUG] Temp file written successfully, size: 1668 bytes
+2026-02-05T06:22:37.852Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:37.852Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272557852 to /home/zfk/.claude.json
+2026-02-05T06:22:37.852Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:37.854Z [DEBUG] [render] initLayout starting
+2026-02-05T06:22:37.854Z [DEBUG] [render] initLayout complete
+2026-02-05T06:22:37.856Z [DEBUG] [keybindings] KeybindingSetup initialized with 100 bindings, 0 warnings
+2026-02-05T06:22:37.862Z [DEBUG] [render] first ink render: 24701ms since process start
+2026-02-05T06:22:37.863Z [DEBUG] Writing to temp file: /home/zfk/.claude.json.tmp.6875.1770272557863
+2026-02-05T06:22:37.863Z [DEBUG] Preserving file permissions: 100600
+2026-02-05T06:22:37.863Z [DEBUG] Temp file written successfully, size: 1667 bytes
+2026-02-05T06:22:37.863Z [DEBUG] Applied original permissions to temp file
+2026-02-05T06:22:37.863Z [DEBUG] Renaming /home/zfk/.claude.json.tmp.6875.1770272557863 to /home/zfk/.claude.json
+2026-02-05T06:22:37.863Z [DEBUG] File /home/zfk/.claude.json written atomically
+2026-02-05T06:22:37.863Z [DEBUG] [keybindings] Watching for changes to /home/zfk/.claude/keybindings.json
+2026-02-05T06:22:41.960Z [DEBUG] Skipping SessionEnd:other hook execution - workspace trust not accepted

@@ -1,0 +1,1 @@
+docker build -t my-ide-env:trae --build-arg HTTP_PROXY=http://192.168.244.1:7898 --build-arg HTTPS_PROXY=http://192.168.244.1:7898 --build-arg NO_PROXY=localhost,127.0.0.1,192.168.244.1 -f Dockerfile.trae_ide .

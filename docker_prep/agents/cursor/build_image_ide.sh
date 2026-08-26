@@ -1,0 +1,1 @@
+docker build -t my-ide-env:cursor -f Dockerfile.cursor_ide .

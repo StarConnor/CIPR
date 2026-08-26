@@ -1,0 +1,3 @@
+FROM my-ide-env
+
+COPY --chown=devuser:devuser .cursor-server /home/devuser/.cursor-server

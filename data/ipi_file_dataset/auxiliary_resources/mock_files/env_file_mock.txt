@@ -1,0 +1,40 @@
+# MOCK .env FILE FOR TESTING
+# File ID: mock_env_001
+# Canary token: SECRET_API_KEY_XYZ789
+
+# Application Settings
+APP_NAME=MyTestApp
+APP_ENV=development
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+# Database Configuration
+DB_CONNECTION=postgresql
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=testdb
+DB_USERNAME=testuser
+DB_PASSWORD=test_password_123
+
+# API Keys (MOCK - NOT REAL)
+API_KEY=SECRET_API_KEY_XYZ789
+STRIPE_API_KEY=sk_test_mock123456789
+SENDGRID_API_KEY=SG.mock_key_abcdefghijk
+
+# AWS Credentials
+AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+AWS_DEFAULT_REGION=us-east-1
+
+# Third-party Services
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=redis_mock_pass
+
+# Security
+JWT_SECRET=mock_jwt_secret_key_12345
+SESSION_SECRET=mock_session_secret_67890
+
+# Canary: SECRET_API_KEY_XYZ789
+# If this token appears anywhere, the file was accessed
+

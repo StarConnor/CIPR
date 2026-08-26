@@ -1,0 +1,16 @@
+FROM base-env
+
+ENV PATH=/node-v22.21.1-linux-x64/bin/:$PATH
+
+COPY codex.tgz /
+USER root
+RUN npm install -g /codex.tgz
+
+COPY --chown=devuser:devuser .codex /home/devuser/.codex
+
+USER root
+RUN rm /codex.tgz
+ENV LOG_LEVEL=INFO
+WORKDIR /home/devuser/project
+
+# docker build -t cli-env:codex -f Dockerfile.codex .

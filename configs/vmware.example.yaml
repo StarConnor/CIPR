@@ -1,0 +1,25 @@
+# Local VMware configuration template.
+# Copy this file to configs/vmware.local.yaml and replace the placeholders.
+# vmware.local.yaml is ignored by Git.
+
+guest:
+  # This Windows username also supplies ${VM_WINDOWS_USER} in IDE YAML paths.
+  username: your-vm-user
+  # Used only by `vmrun runProgramInGuest`. This file is ignored by Git after
+  # copying it to vmware.local.yaml.
+  password: your-vm-password
+
+ssh:
+  # Address of the host as seen from the Windows VM.
+  host: replace-with-host-address
+  user: devuser
+  config_dir: 'C:\\Users\\your-vm-user\\.ssh'
+  identity_file: 'C:\\Users\\your-vm-user\\.ssh\\id_ed25519'
+  github_identity_file: 'C:\\Users\\your-vm-user\\.ssh\\github'
+
+# VMware base VMX files used for IDE agents.
+base_vms:
+  copilot_ide: /path/to/copilot/Windows.vmx
+  cline_ide: /path/to/cline/Windows.vmx
+  cursor_ide: /path/to/cursor/Windows.vmx
+  trae_ide: /path/to/trae/Windows.vmx

@@ -1,0 +1,27 @@
+---
+description: Bug fix quality checklist — reproduction, root cause analysis, testing, and regression prevention
+globs:
+alwaysApply: false
+---
+# Bug Fix Checklist
+
+## Reproduction
+- Document clear steps to reproduce the bug
+- Write a failing test that demonstrates the bug before fixing
+
+## Implementation
+- Fix the root cause, not just symptoms
+- Keep changes minimal and focused
+- No hardcoded values, no TODO comments, no console.log/alert
+- Use optional chaining or lodash/get for nested property access
+
+## Testing
+- Unit test verifying the specific fix
+- Regression tests for related functionality
+- Edge case and boundary condition coverage
+- E2E test for user-facing changes (Cypress)
+
+## Verification
+- All existing tests still pass
+- No performance regressions introduced
+- Fix actually resolves the original issue

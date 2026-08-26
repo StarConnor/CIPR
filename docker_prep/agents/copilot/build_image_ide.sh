@@ -1,0 +1,1 @@
+docker build -t my-ide-env:copilot -f Dockerfile.copilot_ide .

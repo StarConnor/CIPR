@@ -1,0 +1,15 @@
+# GUI/IDE automation dependencies (Windows/GUI environments)
+# Install with: pip install -r requirements-ide.txt
+
+-r requirements-base.txt
+
+# Clipboard support
+pyperclip>=1.11.0
+
+# Appium for cross-platform UI automation
+Appium-Python-Client>=5.2.4
+
+# GUI screenshot support
+pyautogui>=0.9.54
+pillow>=12.0.0
+opencv-python>=4.12.0.88

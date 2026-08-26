@@ -1,0 +1,15 @@
+[project]
+name = "docker"
+version = "0.1"
+requires-python = ">3.11"
+dependencies = [
+    "fastmcp>=2.13.1",
+    "markdownify>=1.2.2",
+    "mcp>=1.21.2",
+    "protego>=0.5.0",
+    "readabilipy>=0.3.0",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true

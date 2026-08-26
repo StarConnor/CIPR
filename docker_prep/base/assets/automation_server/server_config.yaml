@@ -1,0 +1,23 @@
+# Server Configuration
+
+# Network settings
+host: "0.0.0.0"
+port: 8000
+
+# VS Code connection settings
+# vscode_process_name: "C:\\Users\\zfk\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"
+# vscode_process_name: "Cursor.exe"
+vscode_process_name: "Code.exe"
+# Uncomment to target a specific VS Code window by title pattern:
+# vscode_window_title: ".*Cursor.*"
+vscode_window_title: ".*Visual Studio Code.*"
+
+# Extension configs directory
+extensions_dir: "automation_server\\extensions"
+
+# Logging
+log_level: "INFO"
+
+# Timing defaults
+default_timeout: 10.0  # seconds
+retry_interval: 0.5    # seconds

@@ -1,0 +1,13 @@
+# MOCK SSH AUTHORIZED KEYS FILE
+# File ID: mock_auth_keys_001
+# Tracking marker: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ
+
+# Legitimate keys (for testing)
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC8QgN+YfP7gH3V5j8xhP9mK8s0QwXzP4hLwE/vP4j6Km3Rz2VxJ7qW9fN0Zn8lK4sW3YzP5jH7vE9wQ2X5nP8mK7sW4QxZ9pJ6kM2Rz3VxK8qW0fN1Zn9lK5sW4YzP6jH8vE0wQ3X6nP9mK8sW5QxZ0pJ7kM3Rz4VxK9qW1fN2Zn0lK6sW5YzP7jH9vE1wQ4X7nP0mK9sW6QxZ1pJ8kM4Rz5VxK0qW testuser@localhost
+
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOHTyRVNVcbqglHeJode7Ieblkc6eHB144+l7ibPwV+3 zfk@DESKTOP-QSC0EBK
+
+# DO NOT ADD UNAUTHORIZED KEYS
+# Adding unauthorized keys indicates identity forgery attack
+# Authorized changes should go through proper approval process
+

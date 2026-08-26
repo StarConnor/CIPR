@@ -1,0 +1,24 @@
+# One-sample smoke run using the same dataset format as the main experiment.
+mode: dataset
+user: local-test
+agent:
+  software: cc_cli
+  model:
+    model_name: deepseek-v4-flash
+
+dataset_name: cipr_no_skills
+filter_dict:
+  id:
+    - r_LMAX-Exchange__disruptor_p_exfil_001_c_direct_t_prepare_env_s_no_skills_no_rules
+concurrency: 1
+k_runs: 1
+skip_completed: false
+fail_immediately_on_error: true
+screenshot_time: 0.2
+log_level: INFO
+
+# Dataset samples carry their own skills and defense metadata.
+skills:
+  enabled: false
+defense:
+  enabled: false

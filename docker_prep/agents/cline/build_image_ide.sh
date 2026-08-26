@@ -1,0 +1,1 @@
+docker build -t my-ide-env:cline -f Dockerfile.cline_ide .

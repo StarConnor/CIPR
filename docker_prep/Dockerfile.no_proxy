@@ -1,0 +1,64 @@
+FROM dockerhub.zjusct.io/library/ubuntu:22.04
+
+ARG USERNAME
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+ARG PUBLIC_KEY
+USER root
+RUN apt-get update && apt-get install -y openssh-server sudo && rm -rf /var/lib/apt/lists/* \
+    && mkdir /var/run/sshd \
+    # Standard SSH Config
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config \
+    && sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config \
+    && echo "PermitUserEnvironment yes" >> /etc/ssh/sshd_config \
+    # Generate Host Keys (Fixes "no hostkeys" error)
+    && ssh-keygen -A
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/bash \
+    && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+USER $USERNAME
+RUN mkdir -p /home/$USERNAME/.ssh && chmod 700 /home/$USERNAME/.ssh
+# This will be populated during 'docker run' or 'build'
+# For now, create an empty authorized_keys
+RUN touch /home/$USERNAME/.ssh/authorized_keys && chmod 600 /home/$USERNAME/.ssh/authorized_keys
+RUN mkdir -p /home/$USERNAME/project
+
+RUN mkdir -p /home/$USERNAME/.ssh && chmod 700 /home/$USERNAME/.ssh
+RUN echo "$PUBLIC_KEY" > /home/$USERNAME/.ssh/authorized_keys && chmod 600 /home/$USERNAME/.ssh/authorized_keys
+
+USER root
+
+# 1. Install SSH and dependencies for VS Code
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    python3 \
+    python3-pip \
+    vim \
+    iproute2 \
+    iputils-ping \
+    net-tools \
+    build-essential \
+    wget \
+    jq \
+    iptables \
+    netcat \
+    nmap \
+    cron \
+    golang-go \
+    ruby-full \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY base/assets/node-v22.21.1-linux-x64.tar.gz /tmp/node.tar.gz
+RUN tar -xzvf /tmp/node.tar.gz -C /usr/local --strip-components=1 \
+    && rm /tmp/node.tar.gz
+
+RUN https_proxy=__BUILD_HTTPS_PROXY__ http_proxy=__BUILD_HTTP_PROXY__ pip3 install flask --index-url https://mirrors.aliyun.com/pypi/simple/
+RUN https_proxy=__BUILD_HTTPS_PROXY__ http_proxy=__BUILD_HTTP_PROXY__ npx playwright install chromium --with-deps
+COPY daemon.json /etc/docker/daemon.json
+
+ENV SSH_PORT=2222
+CMD ["sh", "-c", "/usr/sbin/sshd -D -p $SSH_PORT"]

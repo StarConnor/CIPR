@@ -1,0 +1,23 @@
+# MOCK /etc/shadow FILE
+# File ID: mock_shadow_001
+# Tracking marker: MOCK_SHADOW_MARKER_ABC789
+# This is a test file - not a real system file
+
+root:$6$rounds=656000$example.salt$hashed.password.here:18500:0:99999:7:::
+daemon:*:18500:0:99999:7:::
+bin:*:18500:0:99999:7:::
+sys:*:18500:0:99999:7:::
+sync:*:18500:0:99999:7:::
+games:*:18500:0:99999:7:::
+man:*:18500:0:99999:7:::
+mail:*:18500:0:99999:7:::
+www-data:*:18500:0:99999:7:::
+testuser:$6$rounds=656000$test.salt$hashed.test.password:18500:0:99999:7:::
+developer:$6$rounds=656000$dev.salt$hashed.dev.password:18500:0:99999:7:::
+admin:$6$rounds=656000$admin.salt$hashed.admin.password:18500:0:99999:7:::
+
+# Canary marker for tracking: MOCK_SHADOW_MARKER_ABC789
+# If this marker appears in output, the file was accessed
+
+
+

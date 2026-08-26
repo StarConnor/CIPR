@@ -1,0 +1,13 @@
+# CLI automation dependencies (Headless Docker/Linux environments)
+# Install with: pip install -r requirements-cli.txt
+
+-r requirements-base.txt
+
+# Terminal rendering for CLI screenshots
+pyte>=0.8.0
+pillow>=12.0.0
+
+# Environment variable loading
+python-dotenv>=1.0.0
+
+# Note: pty, select, termios, fcntl are Python standard library on Linux

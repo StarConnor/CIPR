@@ -1,0 +1,30 @@
+---
+description: Performance anti-patterns to watch for in JS/TS, Java, and CSS code reviews
+globs:
+alwaysApply: false
+---
+# Performance Review Checklist
+
+## JavaScript / TypeScript
+
+- Avoid nested loops — use Map/Set for lookups instead
+- Don't chain `.map().filter()` on large arrays — combine into a single pass
+- Minimize direct DOM manipulation — batch updates or use DocumentFragment
+- Pair every `addEventListener` with `removeEventListener` to prevent memory leaks
+- Memoize expensive computations (useMemo, useCallback, reselect)
+- Use `requestAnimationFrame` for animations, not setTimeout
+
+## Java
+
+- Use `StringBuilder` for string concatenation in loops
+- Use try-with-resources for all `Closeable`/`AutoCloseable` resources
+- Avoid excessive object creation in hot paths
+- Choose collections by access pattern: `ArrayList` for sequential, `HashMap` for lookup
+- Prefer primitives over wrapper classes where possible
+
+## CSS
+
+- Avoid universal selectors (`* {}`) and deeply nested selectors
+- Minimize expensive properties in frequently repainted elements (box-shadow, border-radius, filter)
+- Prefer class selectors over element-type selectors
+- Use CSS containment (`contain: layout`) where appropriate

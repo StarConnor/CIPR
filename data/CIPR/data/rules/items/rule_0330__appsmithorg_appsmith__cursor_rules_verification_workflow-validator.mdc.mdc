@@ -1,0 +1,23 @@
+---
+globs: .github/workflows/**/*.{yaml,yml}
+alwaysApply: false
+---
+# GitHub Actions Workflow Validation
+
+When editing workflow files, ensure:
+
+## Required Structure
+
+Every workflow YAML must have:
+- `name` — descriptive workflow name
+- `on` — trigger configuration (push, pull_request, etc.)
+- `jobs` — at least one job defined
+- Each job must have `runs-on` specified
+
+## Common Mistakes
+
+- Missing `runs-on` in a job definition
+- Invalid YAML syntax (bad indentation, missing colons)
+- Referencing non-existent secrets or variables
+- Using deprecated action versions (prefer `@v4` for checkout, setup-node, etc.)
+- Missing `permissions` block when workflow needs write access

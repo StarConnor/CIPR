@@ -1,0 +1,71 @@
+---
+description: Test conventions and examples for frontend (Jest/Cypress) and backend (JUnit) — file naming, frameworks, and patterns
+globs:
+alwaysApply: false
+---
+# Testing Conventions
+
+## File Naming
+
+- **Frontend unit:** `ComponentName.test.tsx` (colocated with source)
+- **Frontend E2E:** `cypress/e2e/**/*.spec.ts`
+- **Backend unit:** `ServiceNameTest.java`
+- **Backend integration:** `ServiceNameIntegrationTest.java`
+
+## Frameworks
+
+| Area | Unit | Integration | E2E |
+|---|---|---|---|
+| Frontend | Jest + React Testing Library | — | Cypress |
+| Backend | JUnit + Mockito | JUnit + Spring Boot Test | — |
+
+## Frontend Test Pattern (Jest)
+
+```tsx
+import { render, screen, fireEvent } from "@testing-library/react";
+import Button from "./Button";
+
+describe("Button", () => {
+  it("renders correctly", () => {
+    render(<Button label="Click me" />);
+    expect(screen.getByText("Click me")).toBeInTheDocument();
+  });
+
+  it("calls onClick handler when clicked", () => {
+    const handleClick = jest.fn();
+    render(<Button label="Click me" onClick={handleClick} />);
+    fireEvent.click(screen.getByText("Click me"));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+## Backend Test Pattern (JUnit + Reactive)
+
+```java
+@SpringBootTest
+public class UserServiceTest {
+
+    @Autowired
+    private UserService userService;
+
+    @Test
+    public void testCreateUser_ValidInput_ReturnsCreatedUser() {
+        User user = new User("test@example.com", "password");
+        StepVerifier.create(userService.createUser(user))
+                .assertNext(result -> {
+                    assertNotNull(result.getId());
+                    assertEquals("test@example.com", result.getEmail());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    public void testCreateUser_DuplicateEmail_ThrowsException() {
+        User user = new User("existing@example.com", "password");
+        StepVerifier.create(userService.createUser(user))
+                .expectError(AppsmithException.class)
+                .verify();
+    }
+}
+```

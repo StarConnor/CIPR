@@ -1,0 +1,14 @@
+FROM my-dev-env:cli
+
+ENV PATH=/node-v22.21.1-linux-x64/bin/:$PATH
+USER devuser
+WORKDIR /home/devuser
+RUN npm install -g @github/copilot
+
+USER devuser
+COPY --chown=devuser:devuser copilot/.copilot /home/devuser/.copilot
+
+COPY copilot/cli_server.py /app/
+
+USER root
+CMD [ "python3", "/app/cli_server.py" ]

@@ -1,0 +1,576 @@
+# GitHub Copilot Extension Configuration
+# This config defines how to automate the GitHub Copilot VS Code extension
+# Copilot is activated via keyboard shortcut: Ctrl+Alt+I
+
+name: cline_ide
+# pane_name: Copilot
+display_name: cline
+version: "1.0"
+driver: ide
+
+export_dir: "C:\\project"
+executable_path: "C:\\Users\\${VM_WINDOWS_USER}\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"
+ide_server_folder: "./docker_prep/cline/.vscode-server"
+# Activation method: keyboard shortcut instead of clicking a tab
+activation_hotkey: "^%i"  # Ctrl+Alt+I in pywinauto format
+
+# ============================================================
+# SELECTORS - Define how to locate UI elements
+# ============================================================
+selectors:
+
+  root_view:
+    criteria:
+      class_name: "RootView"
+    wait_timeout: 2
+
+  # Input text area for sending messages
+  input:
+    criteria:
+      title: "Type your task here..."
+    wait_timeout: 1
+  
+  new_question:
+    criteria:
+      title: "Type a message..."
+
+  toggle_chat_button:
+    criteria:
+      title: "Cline"
+
+  retry_button:
+    criteria:
+      title: "Retry"
+    wait_timeout: 1
+  
+  end_button:
+    criteria:
+      title: "Start New Task"
+    wait_timeout: 1
+
+  proceed_anyways_button:
+    criteria:
+      title: "Proceed Anyways"
+    wait_timeout: 1
+
+  delete_notification_button:
+    criteria:
+      title: "Clear Notification (Delete)"
+    wait_timeout: 1
+  
+  show_local:
+    criteria:
+      title: "Show Local"
+    wait_timeout: 3 
+  
+  # Command palette input (appears after Ctrl+Shift+P)
+  command_palette_input:
+    criteria:
+      title: "Type the name of a command to run."
+    wait_timeout: 5
+
+  OK_button:
+    criteria:
+      title: "OK"
+    wait_timeout: 1
+
+  trust_button:
+    criteria:
+      title: "Trust Folder & Continue"
+    wait_timeout: 1
+  
+  proceed_button:
+    criteria:
+      title: "Proceed While Running"
+    wait_timeout: 1
+  
+  root:
+    criteria:
+      xpath: "/*"
+    wait_timeout: 3
+
+  yes_button:
+    criteria:
+      title: "Yes"
+    wait_timeout: 1
+  
+  # =============
+  # model config
+  # =============
+  settings_button:
+    criteria:
+      title: "Settings"
+  
+  api_provider:
+    criteria:
+      title: "API Provider"
+  
+  model_id_input:
+    criteria:
+      xpath: "//Edit[contains(@HelpText, 'Enter Model ID...')]"
+
+  done_button:
+    criteria:
+      title: "Done"
+  
+  cline_ask_questions:
+    criteria:
+      title: "Cline has a question:"
+    wait_timeout: 1
+  
+  history_button:
+    criteria:
+      title: "History"
+  
+  open_file_input:
+    criteria:
+      title: "Folder path - Open File"
+  
+  scroll_button:
+    criteria:
+      title: "Scroll to bottom"
+  
+  cancel_button:
+    criteria:
+      title: "Cancel"
+  
+  pending:
+    criteria:
+      title: "Pending"
+  
+  run_command_button:
+    criteria:
+      title: "Run Command"
+  
+  resume_button:
+    criteria:
+      title: "Resume Task"
+
+
+
+
+# ============================================================
+# WORKFLOWS - Multi-step operations with parameters
+# ============================================================
+workflows:
+
+  # Prepare VS Code - start or connect to VS Code
+  prepare_vscode:
+    description: "Start VS Code or connect to an existing instance"
+    parameters:
+      - name: executable_path
+        type: string
+        required: false
+        default: ""
+      - name: workspace_path
+        type: string
+        required: false
+        default: ""
+    steps:
+      - type: wait
+        duration: 5.0
+      - type: start_program
+        executable: "{{executable_path}}"
+        workspace: "{{workspace_path}}"
+        wait_time: 5.0
+        value: "Code.exe"
+        output: started
+      - type: keyboard
+        target: root
+        value: "#{UP}"
+
+      - type: time_mark
+        output: status_wait_start
+      - id: poll_status
+        type: check_element
+        target: retry_button
+        output: int_retry
+
+      - type: click
+        target: retry_button
+        when: "int_retry == True"
+      
+      - type: wait
+        duration: 5
+        when: "int_retry == True"
+      
+      - type: check_element
+        target: trust_button
+        output: int_trust
+      - type: click
+        target: trust_button
+        when: "int_trust == True"
+
+      - type: check_timeout
+        start_time: status_wait_start
+        value: "30"
+        output: status_timeout
+
+      - type: jump_to
+        target_id: handle_failure
+        condition: "status_timeout == True"
+      
+      - type: jump_to
+        target_id: poll_status
+        condition: "int_retry == True or int_trust == True"
+      
+      - type: set_output
+        key: ready
+        value: "true"
+      
+      - type: jump_to
+        target_id: end
+
+      - id: handle_failure
+        type: set_output
+        key: ready
+        value: "false" 
+      
+      - id: end
+        type: log
+        level: "info"
+        value: "Workflow completed successfully."
+
+  # Complete workflow: Send message, wait for completion, export and return history
+  send_and_export:
+    description: "Send a message, wait for completion, and export chat history"
+    parameters:
+      - name: message
+        type: string
+        required: true
+      - name: timeout_seconds
+        type: int
+        default: 120
+      - name: export_directory
+        type: string
+        default: "."
+    steps:
+      - id: check_input_ready
+        type: check_element
+        target: input
+        output: input_exists 
+        timeout: 10
+
+      # If input is not found, try to toggle the chat and check for trust
+      - type: click
+        target: toggle_chat_button
+        when: "not input_exists"
+
+      - type: check_element
+        target: trust_button
+        output: int_trust
+
+      - type: click
+        target: trust_button
+        when: "int_trust == True"
+
+      # Re-check until input exists (with a slight delay to avoid CPU spike)
+      - type: jump_to
+        target_id: check_input_ready
+        condition: "not input_exists"
+
+      # --- CONFIGURATION PHASE (Now reachable) ---
+      - type: click
+        target: settings_button
+
+      - type: set_text
+        target: model_id_input
+        value: "<<model_name>>"
+      
+      - type: click
+        target: done_button
+      
+      - id: check_input_ready_2
+        type: set_output
+        key: input_exists
+        value: False
+
+      - type: check_element
+        target: input
+        output: input_exists 
+        timeout: 10
+      
+      - type: jump_to
+        target_id: check_input_ready_2
+        condition: "not input_exists"
+
+      - type: input
+        target: input
+        value: "{{message}}"
+      
+# --- INITIALIZATION ---
+      - type: time_mark
+        output: start_time
+
+      # INITIALIZE: Use time_mark so it's a float from the start
+      - type: time_mark
+        output: pending_start_time
+
+      # --- LOOP START ---
+      - id: poll_agent_state
+        type: wait
+        duration: 1.0
+
+      - type: set_output
+        key: needs_refresh
+        value: False
+
+      # 1. Global Timeout (600s)
+      - type: check_timeout
+        start_time: start_time
+        value: '600'
+        output: timed_out
+      - type: jump_to
+        target_id: handle_failure
+        condition: "timed_out == True"
+      
+      - type: check_element
+        target: proceed_button
+        output: proceed_found
+      
+      - type: click
+        target: proceed_button
+        when: "proceed_found == True"
+
+      - type: check_element
+        target: run_command_button
+        output: run_command_exists
+      
+      - type: click
+        target: run_command_button
+        when: "run_command_exists == True"
+
+      # 2. Stuck/Pending Logic (30s)
+      - type: check_element
+        target: pending
+        output: is_pending
+      
+      # RESET TIMER: If NOT pending, keep moving the start time to "now"
+      # This keeps (current_time - pending_start_time) near 0.
+      - type: time_mark
+        output: pending_start_time
+        when: "is_pending == False"
+
+      # CHECK TIMEOUT: Only runs if is_pending is True.
+      # Because time_mark stopped updating above, the duration will now grow.
+      - type: check_timeout
+        start_time: pending_start_time
+        value: '30'
+        output: needs_refresh
+        when: "is_pending == True"
+
+      # Trigger Refresh if stuck
+      - type: check_element
+        target: cancel_button
+        output: cancel_found
+        when: "needs_refresh == True"
+
+      - type: click
+        target: cancel_button
+        when: "needs_refresh == True"
+      - type: scroll
+        x: 54
+        y: 380
+      - type: wait
+        duration: 2.0
+        when: "needs_refresh == True"
+      - type: check_element
+        target: resume_button
+        output: resume_found
+      
+      - type: click
+        target: resume_button
+        when: "resume_found == True"
+      
+      - type: check_element
+        target: new_question
+        output: question_found
+        when: "needs_refresh == True and resume_found == True"
+
+      - type: input
+        target: new_question 
+        value: "The previous command finished executing but you are still waiting for the end of the command. Please run the command again (redirect stdout and stderr to a temporary file (e.g., cmd > out.txt 2>&1). Then, read the file to get the result and delete it afterwards) or you can just continue to do the remaining task."
+        when: "needs_refresh == True and resume_found == True and question_found == True"
+      
+      # IMPORTANT: After refresh, reset the timer to "now" so it doesn't loop refresh
+      - type: time_mark
+        output: pending_start_time
+        when: "needs_refresh == True"
+
+      - type: jump_to
+        target_id: poll_agent_state
+        condition: "needs_refresh == True"
+
+      # 3. UI Maintenance
+      - type: click
+        target: scroll_button
+        optional: True
+      
+      # 4. Success Check
+      - type: check_element
+        target: end_button
+        output: task_end
+
+      - type: check_element
+        target: proceed_anyways_button
+        output: proceed_anyways_found      
+        when: "task_end == True"
+      
+      - type: set_output
+        key: task_end
+        value: false
+        when: "proceed_anyways_found == True"
+
+      - type: jump_to
+        target_id: export_chat
+        condition: "task_end == True"
+      
+      # 5. Handle Cline questions
+      - type: check_n_elements
+        target: cline_ask_questions
+        value: "length"
+        output: cline_ask_new_question
+      
+      - type: input
+        target: new_question
+        value: "Please proceed according to your best judgement."
+        when: "cline_ask_new_question"
+      
+      # 6. Handle "Yes" buttons
+      - type: check_element
+        target: yes_button
+        output: yes_found
+      - type: click
+        target: yes_button
+        when: "yes_found == True"
+
+      # 7. Final Loop
+      - type: jump_to
+        target_id: poll_agent_state
+        condition: "task_end == False"
+
+      - type: jump_to
+        target_id: export_chat
+
+      - id: export_chat
+        type: wait
+        duration: 2
+        # (Export logic follows...)
+
+      - type: jump_to
+        target_id: end
+      
+      - id: handle_failure
+        type: set_output
+        key: status
+        value: "Workflow failed: Element not found or timeout reached."
+      
+      - id: end
+        type: log
+        level: "info"
+        value: "Workflow completed successfully."
+  
+
+  export_outputs:
+    description: "Export chat history"
+    parameters:
+      - name: export_directory
+        type: string
+        default: "."
+    steps:
+      - type: keyboard
+        target: root
+        value: "^+p"  # Ctrl+Shift+P
+      - type: wait
+        duration: 0.5
+      - type: input
+        target: command_palette_input
+        value: "Chat: Export Chat"
+      - type: wait
+        duration: 2
+      - type: direct_input
+        value: "{{chat_file_name}}"
+      - type: wait
+        duration: 0.5
+      # Read exported file and return history
+      - type: read_exported_chat
+        directory: "{{export_directory}}"
+        output: chat_history
+
+
+  # Wait for Copilot to be ready by checking the status button
+  wait_for_copilot_ready:
+    description: "Wait for Copilot to be ready by hovering over status button and checking for Snooze button"
+    parameters:
+      - name: timeout_seconds
+        type: int
+        default: 120
+      - name: poll_interval
+        type: float
+        default: 3.0
+    steps:
+      # Poll until Copilot status button is found and Snooze appears on hover
+      - type: wait_for_element
+        target: copilot_agent_process_button
+        timeout: "{{timeout_seconds}}"
+        poll_interval: "{{poll_interval}}"
+        output: status_button_found
+      # Hover over the status button to show the popup
+      - type: hover
+        target: copilot_agent_process_button
+        duration: 1.0
+      # Wait for Snooze button to appear (indicates Copilot is ready)
+      - type: wait_for_element
+        target: snooze_button
+        timeout: 10
+        poll_interval: 1.0
+        output: copilot_ready
+      # Move mouse away to close popup
+      - type: set_output
+        key: ready
+        value: "true"
+
+  # Close VS Code gracefully
+  close_vscode:
+    description: "Close VS Code gracefully"
+    parameters:
+      - name: force
+        type: bool
+        default: false
+      - name: save_files
+        type: bool
+        default: false
+    steps:
+      - type: close_program
+        value: "Code.exe"
+        force: "{{force}}"
+        output: closed
+
+# ============================================================
+# STATE - Define how to query current UI state
+# ============================================================
+state:
+  # Is the Copilot pane visible?
+  is_active:
+    method: is_visible
+    target: pane
+
+  # What's currently in the input box?
+  current_input:
+    method: get_text
+    target: input
+
+  # How many messages in the history?
+  message_count:
+    method: count_children
+    target: history_container
+
+  # Is Retry button visible (task finished)?
+  is_task_finished:
+    method: exists
+    target: retry_button
+
+  # Is command palette open?
+  is_command_palette_open:
+    method: exists
+    target: command_palette_input

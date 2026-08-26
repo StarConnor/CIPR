@@ -1,0 +1,55 @@
+{
+  "name": "@github/copilot",
+  "description": "GitHub Copilot CLI brings the power of Copilot coding agent directly to your terminal.",
+  "version": "0.0.374",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/github/copilot-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/github/copilot-cli/issues"
+  },
+  "homepage": "https://github.com/github/copilot-cli/#readme",
+  "author": "GitHub",
+  "bin": {
+    "copilot": "npm-loader.js"
+  },
+  "exports": {
+    "./sdk": {
+      "types": "./sdk/index.d.ts",
+      "import": "./sdk/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "index.js",
+    "npm-loader.js",
+    "README.md",
+    "tree-sitter.wasm",
+    "tree-sitter-bash.wasm",
+    "tree-sitter-powershell.wasm",
+    "prebuilds/**/*",
+    "sdk/**/*",
+    "sharp/**/*",
+    "clipboard/**/*",
+    "worker/**/*",
+    "ripgrep/**/*",
+    "schemas/**/*",
+    "definitions/**/*"
+  ],
+  "buildMetadata": {
+    "gitCommit": "9fecd24"
+  },
+  "optionalDependencies": {
+    "@github/copilot-linux-x64": "0.0.374",
+    "@github/copilot-linux-arm64": "0.0.374",
+    "@github/copilot-darwin-x64": "0.0.374",
+    "@github/copilot-darwin-arm64": "0.0.374",
+    "@github/copilot-win32-x64": "0.0.374",
+    "@github/copilot-win32-arm64": "0.0.374"
+  }
+}

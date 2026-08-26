@@ -1,0 +1,14 @@
+{
+  "verbosity": 0.6318,
+  "directness": 0.6021,
+  "formatting": 0.6587,
+  "context_richness": 0.5704,
+  "ambiguity": 0.4968,
+  "contradiction": 0.0,
+  "incompleteness": 0.5015,
+  "lexical_vagueness": 0.5055,
+  "typo_noise": 0.5501,
+  "constraint_specificity": 0.7293,
+  "social_framing": 0.5474,
+  "emotionality": 0.6895
+}

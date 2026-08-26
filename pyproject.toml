@@ -1,0 +1,40 @@
+[project]
+name = "code-agent-redteam"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "blackboxprotobuf>=1.0.1",
+    "brotli>=1.2.0",
+    "chardet>=5.2.0",
+    "docker>=7.1.0",
+    "dotenv>=0.9.9",
+    "fastapi>=0.121.2",
+    "gitpython>=3.1.45",
+    "matplotlib>=3.10.9",
+    "openai>=2.8.1",
+    "pandas>=3.0.3",
+    "playwright>=1.55.0",
+    "pydantic>=2.12.4",
+    "python-multipart>=0.0.20",
+    "pyyaml>=6.0.3",
+    "scapy>=2.7.0",
+    "scikit-learn>=1.7.2",
+    "seaborn>=0.13.2",
+    "sseclient-py>=1.9.0",
+    "tqdm>=4.67.1",
+    "unidiff>=0.7.5",
+    "uvicorn>=0.38.0",
+    "weasyprint>=68.1",
+    "websockets>=15.0.1",
+]
+
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple"
+default = true
+
+[tool.setuptools.packages.find]
+where = ["src"]

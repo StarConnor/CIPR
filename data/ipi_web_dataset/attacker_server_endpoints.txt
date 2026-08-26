@@ -1,0 +1,17 @@
+/api
+/backdoor
+/backdoor.php
+/backdoor.py
+/backdoor.rb
+/collect
+/collect.
+/exfil
+/log
+/malware
+/payload.ps1
+/payload.sh
+/script.sh
+/steal_creds.sh
+collect
+malicious-ca.org/root.crt
+malicious-hooks.org/backdoor.sh

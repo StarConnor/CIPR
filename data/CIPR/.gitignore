@@ -1,0 +1,35 @@
+# Secrets and local development state
+.env
+.env.*
+!.env.example
+.venv/
+.vscode/
+__pycache__/
+*.py[cod]
+
+# Local repository clones, fetch caches, and container/workspace archives
+.repo_cache/
+data/repos/workspaces/
+data/workspaces/
+data/skills/_repo_cache/
+workspaces/
+issues/
+processed/
+test_filtered/
+atomic-red-team/
+cloneguard/
+prompts/PhishNChips/
+skills/PoisonedSkills/
+skills/SkillJect/
+skills/skillscan/
+*.tar.zst
+
+# Locally retained historical material; not part of the public release.
+archive/
+
+# Generated analysis outputs and prompt-pipeline experiments
+figures/
+data/prompts/legacies/
+data/prompts/outputs/
+data/prompts/embeddings.npy
+data/prompts/tsne_clusters.png

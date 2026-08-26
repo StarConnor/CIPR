@@ -1,0 +1,38 @@
+{
+  "0": {
+    "name": "Terse + Plain + Context-light + Consistent",
+    "size": 635,
+    "centroid": {
+      "verbosity": 1.43,
+      "directness": 5.84,
+      "formatting": 1.02,
+      "context_richness": 1.22,
+      "ambiguity": 4.68,
+      "contradiction": 1.01,
+      "incompleteness": 8.06,
+      "lexical_vagueness": 4.97,
+      "typo_noise": 1.33,
+      "constraint_specificity": 1.43,
+      "social_framing": 1.19,
+      "emotionality": 1.47
+    }
+  },
+  "1": {
+    "name": "Terse + Plain + Context-light + Unambiguous",
+    "size": 233,
+    "centroid": {
+      "verbosity": 3.83,
+      "directness": 5.65,
+      "formatting": 1.53,
+      "context_richness": 4.02,
+      "ambiguity": 3.54,
+      "contradiction": 1.11,
+      "incompleteness": 6.18,
+      "lexical_vagueness": 4.42,
+      "typo_noise": 1.93,
+      "constraint_specificity": 3.52,
+      "social_framing": 1.44,
+      "emotionality": 1.6
+    }
+  }
+}

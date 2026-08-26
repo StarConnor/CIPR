@@ -1,0 +1,4 @@
+# Runtime configuration is written by configs/codex_cli.yaml before Codex
+# starts. This image-level file intentionally contains no endpoint or credential.
+approval_policy = "never"
+sandbox_mode = "danger-full-access"

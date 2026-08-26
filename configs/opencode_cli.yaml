@@ -1,0 +1,383 @@
+# OpenCode CLI Agent Configuration
+# This config automates the opencode CLI coding agent in headless Docker containers.
+
+name: opencode_cli
+display_name: OpenCode CLI
+version: "1.0"
+driver: cli
+ # Runtime credentials are resolved from environment variables (for example,
+ # CODEX_API_KEY and CODEX_BASE_URL) by src/agent_red/utils/get_model_api.py.
+ # Never put a real credential in a version-controlled agent configuration.
+llm_api_key: ""
+llm_base_url: ""
+llm_model: gpt-4o-mini
+
+workflows:
+  send_and_export:
+    description: "Send a task to opencode CLI, wait for completion, and export chat history"
+    parameters:
+      - name: message
+        type: string
+        required: true
+      - name: model
+        type: string
+        required: false
+        default: "gpt-4o-mini"
+      - name: api_key
+        type: string
+        required: false
+        default: ""
+      - name: api_base_url
+        type: string
+        required: false
+        default: ""
+      - name: config_file_path
+        type: string
+        required: false
+        default: "/home/devuser/.config/opencode/opencode.json"
+      - name: timeout_seconds
+        type: int
+        default: 600
+      - name: quiet_seconds
+        type: int
+        default: 30
+      - name: auto_approve
+        type: bool
+        default: true
+      - name: export_file_path
+        type: string
+        required: false
+        default: "/home/devuser/.local/share/opencode/latest_export.json"
+    steps:
+      # Do not use update_json_file here: it interprets dots in keys as nested
+      # paths, so a model such as "gpt-5.4" becomes models.gpt-5.4 instead of
+      # models["gpt-5.4"].  opencode then fails with ProviderModelNotFoundError.
+      # Rewrite the config as JSON so arbitrary model IDs (including dotted
+      # OpenAI-style names) are preserved exactly as provider model keys.
+      - type: execute_script
+        value: |
+          set -e
+          export OPENCODE_CONFIG_PATH="{{config_file_path}}"
+          export OPENCODE_MODEL="{{model}}"
+          export OPENCODE_API_KEY="{{api_key}}"
+          export OPENCODE_BASE_URL="{{api_base_url}}"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          config_path = Path(os.environ["OPENCODE_CONFIG_PATH"]).expanduser()
+          model = os.environ["OPENCODE_MODEL"]
+          api_key = os.environ.get("OPENCODE_API_KEY", "")
+          # Route opencode through a tiny local compatibility shim started by
+          # cli_start below. Some OpenAI-compatible gateways stream GPT tool
+          # calls with a final finish_reason="stop" even though the non-stream
+          # response correctly says "tool_calls"; opencode treats "stop" as a
+          # completed turn and exits after the first batch of tools.
+          base_url = "http://127.0.0.1:18080/v1"
+
+          config = {
+              "$schema": "https://opencode.ai/config.json",
+              "model": f"agentred/{model}",
+              "small_model": f"agentred/{model}",
+              "provider": {
+                  "agentred": {
+                      "npm": "@ai-sdk/openai-compatible",
+                      "name": "Agent Red OpenAI-Compatible",
+                      "options": {
+                          "baseURL": base_url,
+                          "apiKey": api_key,
+                      },
+                      "models": {
+                          model: {
+                              "name": model,
+                              # DeepSeek V4 thinking mode returns
+                              # reasoning_content. Without this metadata,
+                              # opencode/@ai-sdk may drop it after a tool call
+                              # and the next DeepSeek API request fails with
+                              # HTTP 400. Safe for models that do not emit
+                              # reasoning_content: it only preserves the field
+                              # if present.
+                              "interleaved": {"field": "reasoning_content"},
+                              "reasoning": True,
+                              "tool_call": True,
+                          }
+                      },
+                  }
+              },
+              "permission": {
+                  "edit": "allow",
+                  "bash": "allow",
+                  "webfetch": "allow",
+              },
+          }
+
+          config_path.parent.mkdir(parents=True, exist_ok=True)
+          config_path.write_text(json.dumps(config, indent=2) + "\n")
+          PY
+        output: settings_updated
+
+      - type: cli_start
+        command:
+          - "bash"
+          - "-lc"
+          - |
+            set +e
+            export OPENCODE_CONFIG="{{config_file_path}}"
+            export OPENCODE_UPSTREAM_BASE_URL="{{api_base_url}}"
+            export OPENCODE_DISABLE_AUTOCOMPACT=1
+            export OPENCODE_DISABLE_UPDATE_NOTIFIER=1
+            export NODE_TLS_REJECT_UNAUTHORIZED=0
+            model="$1"
+            shift
+            message="$*"
+            mkdir -p /home/devuser/.local/share/opencode
+            rm -f "{{export_file_path}}"
+
+            # Local OpenAI-compatible streaming shim. It forwards all requests
+            # to the configured upstream, but fixes a GPT-compatible streaming
+            # edge case where chunks contain tool_calls and the final chunk says
+            # finish_reason="stop" instead of "tool_calls". Without this,
+            # opencode executes the first tools and then exits immediately.
+            python3 - <<'PY' &
+            import json
+            import os
+            import ssl
+            import sys
+            import urllib.error
+            import urllib.request
+            from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+            upstream = os.environ["OPENCODE_UPSTREAM_BASE_URL"].rstrip("/")
+            context = ssl._create_unverified_context()
+
+            class Proxy(BaseHTTPRequestHandler):
+                protocol_version = "HTTP/1.1"
+
+                def log_message(self, fmt, *args):
+                    pass
+
+                def _target(self):
+                    path = self.path
+                    if path.startswith("/v1/"):
+                        path = path[3:]
+                    elif path == "/v1":
+                        path = ""
+                    return upstream + path
+
+                def _copy_headers(self):
+                    headers = {}
+                    for key, value in self.headers.items():
+                        lower = key.lower()
+                        if lower in {"host", "content-length", "connection", "accept-encoding"}:
+                            continue
+                        headers[key] = value
+                    headers["Accept-Encoding"] = "identity"
+                    return headers
+
+                def _proxy(self):
+                    length = int(self.headers.get("content-length") or 0)
+                    body = self.rfile.read(length) if length else None
+                    req = urllib.request.Request(
+                        self._target(),
+                        data=body,
+                        headers=self._copy_headers(),
+                        method=self.command,
+                    )
+                    try:
+                        resp = urllib.request.urlopen(req, timeout=600, context=context)
+                    except urllib.error.HTTPError as exc:
+                        data = exc.read()
+                        self.send_response(exc.code)
+                        self.send_header("Content-Type", exc.headers.get("Content-Type", "text/plain"))
+                        self.send_header("Content-Length", str(len(data)))
+                        self.end_headers()
+                        self.wfile.write(data)
+                        self.wfile.flush()
+                        return
+
+                    content_type = resp.headers.get("Content-Type", "")
+                    is_sse = "text/event-stream" in content_type
+                    self.send_response(resp.status)
+                    self.send_header("Content-Type", content_type or "application/octet-stream")
+                    self.send_header("Cache-Control", "no-cache")
+                    self.send_header("Connection", "close")
+                    self.end_headers()
+
+                    if not is_sse:
+                        self.wfile.write(resp.read())
+                        self.wfile.flush()
+                        return
+
+                    saw_tool_calls = False
+                    for raw in resp:
+                        line = raw.decode("utf-8", errors="replace")
+                        if line.startswith("data: ") and line.strip() != "data: [DONE]":
+                            try:
+                                payload = json.loads(line[6:])
+                                for choice in payload.get("choices", []):
+                                    delta = choice.get("delta") or {}
+                                    if delta.get("tool_calls"):
+                                        saw_tool_calls = True
+                                    if saw_tool_calls and choice.get("finish_reason") == "stop":
+                                        choice["finish_reason"] = "tool_calls"
+                                raw = ("data: " + json.dumps(payload, separators=(",", ":")) + "\n\n").encode()
+                            except Exception:
+                                pass
+                        self.wfile.write(raw)
+                        self.wfile.flush()
+
+                def do_GET(self):
+                    self._proxy()
+
+                def do_POST(self):
+                    self._proxy()
+
+            ThreadingHTTPServer(("127.0.0.1", 18080), Proxy).serve_forever()
+            PY
+            proxy_pid=$!
+            trap 'kill "$proxy_pid" 2>/dev/null || true' EXIT
+            sleep 0.2
+
+            # opencode can emit the final JSON event (eg. {"finish":"stop"})
+            # before the CLI process actually returns to this wrapper. Print a
+            # short sentinel as soon as the stream shows a terminal event so the
+            # automation screen parser does not have to wait for process exit.
+            opencode run --model "$model" --format json "$message" 2>&1 | awk '
+              { print; fflush();
+                if (!seen_done && (index($0, "\"finish\":\"stop\"") || index($0, "\"reason\":\"stop\"") || index($0, "\"type\":\"error\""))) {
+                  print "OPENCODE_RUN_FINISHED status=stream"; fflush(); seen_done=1
+                }
+              }
+            '
+            status=${PIPESTATUS[0]}
+            latest_session=$(find /home/devuser/.local/share/opencode/storage/session -name '*.json' -type f -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
+            if [ -n "$latest_session" ]; then
+              session_id=$(basename "$latest_session" .json)
+              mkdir -p "$(dirname "{{export_file_path}}")"
+              opencode export "$session_id" > "{{export_file_path}}" 2>/tmp/opencode_export.err || true
+            fi
+            echo "OPENCODE_RUN_FINISHED status=$status"
+            exit $status
+          - "--"
+          - "agentred/{{model}}"
+          - "{{message}}"
+        rows: 50
+        cols: 120
+        output: started
+
+      - type: time_mark
+        output: start_time
+
+      - type: time_mark
+        output: last_interaction_time
+
+      - id: poll_state
+        type: wait
+        duration: 0.5
+
+      - type: check_timeout
+        start_time: start_time
+        value: "{{timeout_seconds}}"
+        output: timed_out
+
+      - type: jump_to
+        target_id: cleanup
+        condition: "timed_out == True"
+
+      - type: cli_screen_stability
+        value: "{{quiet_seconds}}"
+        text_output: screen_text
+        output: screen_stable
+        stable_for_output: screen_stable_for
+        changed_output: screen_changed
+        state_key: opencode_screen_stability
+
+      - type: set_output
+        key: is_busy
+        value: "'Thinking' in screen_text or 'Working' in screen_text or 'Running' in screen_text or 'Tool' in screen_text"
+
+      - type: set_output
+        key: is_confirmation
+        value: "'[y/N]' in screen_text or '[y/n]' in screen_text or 'Allow?' in screen_text or 'allow?' in screen_text"
+
+      - type: time_mark
+        output: current_time
+
+      - type: set_output
+        key: time_since_interaction
+        value: "current_time - last_interaction_time"
+
+      - type: cli_input
+        value: "y\n"
+        when: "auto_approve == True and is_confirmation == True and time_since_interaction > 1.0"
+
+      - type: time_mark
+        output: last_interaction_time
+        when: "auto_approve == True and is_confirmation == True and time_since_interaction > 1.0"
+
+      # In opencode JSON-stream mode the final assistant message can be printed
+      # before the CLI process actually returns to the wrapper shell. Treat the
+      # final JSON event itself as completion; otherwise we can wait forever for
+      # OPENCODE_RUN_FINISHED and never export the session.
+      - type: set_output
+        key: has_finished_sentinel
+        value: "'OPENCODE_RUN_FINISHED' in screen_text"
+
+      - type: set_output
+        key: has_opencode_terminal_event
+        value: "'\"finish\":\"stop\"' in screen_text or '\"reason\":\"stop\"' in screen_text or '\"type\":\"error\"' in screen_text"
+
+      - type: set_output
+        key: is_complete
+        value: "is_confirmation == False and (has_finished_sentinel == True or has_opencode_terminal_event == True)"
+
+      - type: jump_to
+        target_id: export_history
+        condition: "is_complete == True"
+
+      - type: jump_to
+        target_id: poll_state
+
+      - id: export_history
+        type: cli_stop
+
+      # Export after stopping as well. This covers the common case where the
+      # JSON stream has already emitted the final `finish: stop` event, but the
+      # shell wrapper has not yet reached its own `opencode export` line.
+      - type: execute_script
+        value: |
+          latest_session=$(find /home/devuser/.local/share/opencode/storage/session -name '*.json' -type f -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
+          if [ -n "$latest_session" ]; then
+            session_id=$(basename "$latest_session" .json)
+            mkdir -p "$(dirname "{{export_file_path}}")"
+            opencode export "$session_id" > "{{export_file_path}}" 2>/tmp/opencode_export.err || true
+          fi
+        timeout: 30
+        output: export_result
+
+      - type: read_exported_chat
+        directory: "/home/devuser/.local/share/opencode"
+        pattern: "latest_export.json"
+        output: chat_history
+
+      - type: jump_to
+        target_id: end
+
+      - id: cleanup
+        type: cli_stop
+
+      - type: set_output
+        key: chat_history
+        value: "Task timed out"
+
+      - id: end
+        type: log
+        level: "info"
+        value: "OpenCode CLI workflow completed"
+
+  close_session:
+    description: "Terminate opencode CLI session"
+    steps:
+      - type: cli_stop
+        output: stopped

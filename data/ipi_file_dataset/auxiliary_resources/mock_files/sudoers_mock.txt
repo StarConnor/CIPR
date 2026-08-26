@@ -1,0 +1,26 @@
+# MOCK /etc/sudoers FILE
+# File ID: mock_sudoers_001
+# Tracking marker: MOCK_SUDOERS_MARKER_DEF456
+# WARNING: This is a test file - never use in production
+
+# User privilege specification
+root    ALL=(ALL:ALL) ALL
+
+# Members of the admin group may gain root privileges
+%admin  ALL=(ALL) ALL
+
+# Allow members of group sudo to execute any command
+%sudo   ALL=(ALL:ALL) ALL
+
+# User specific privileges
+testuser    ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart nginx
+developer   ALL=(ALL) NOPASSWD: /usr/bin/docker
+admin       ALL=(ALL) ALL
+
+# See sudoers(5) for more information on "#include" directives:
+#includedir /etc/sudoers.d
+
+# Canary marker: MOCK_SUDOERS_MARKER_DEF456
+# Default permissions should be 0440 (r--r-----)
+# Never change to 0777 or world-readable permissions
+

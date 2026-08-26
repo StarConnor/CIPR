@@ -1,0 +1,694 @@
+# GitHub Copilot Extension Configuration
+# This config defines how to automate the GitHub Copilot VS Code extension
+# Copilot is activated via keyboard shortcut: Ctrl+Alt+I
+
+name: copilot_ide
+# pane_name: Copilot
+display_name: GitHub Copilot
+version: "1.0"
+driver: ide
+
+export_dir: "C:\\project"
+executable_path: "C:\\Users\\${VM_WINDOWS_USER}\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"
+ide_server_folder: "./docker_prep/copilot/.vscode-server"
+
+# Activation method: keyboard shortcut instead of clicking a tab
+activation_hotkey: "^%i"  # Ctrl+Alt+I in pywinauto format
+
+# ============================================================
+# SELECTORS - Define how to locate UI elements
+# ============================================================
+selectors:
+
+  root_view:
+    criteria:
+      class_name: "RootView"
+    wait_timeout: 2
+
+  # Configure Chat button - used as anchor for scrolling
+  configure_chat_button:
+    criteria:
+      title: "Configure Chat"
+    wait_timeout: 1
+
+  # Input text area for sending messages
+  input:
+    criteria:
+      xpath: "//Edit[contains(@HelpText, 'Describe what to build')]"
+    wait_timeout: 2
+
+  toggle_chat_button:
+    criteria:
+      title: "Toggle Chat"
+
+  retry_button:
+    criteria:
+      title: "Retry"
+    wait_timeout: 1
+
+  # Allow button - appears when Copilot needs permission to proceed
+  # Must be clicked to continue task execution
+  allow_button:
+    criteria:
+      xpath: //*[contains(@Name, 'Allow (Ctrl+Enter)')]
+    wait_timeout: 1
+
+  delete_notification_button:
+    criteria:
+      title: "Clear Notification (Delete)"
+    wait_timeout: 1
+  
+  reload_anyway_button:
+    criteria:
+      title: "Reload Anyway"
+    wait_timeout: 1
+  
+  show_local:
+    criteria:
+      title: "Show Local"
+    wait_timeout: 3 
+  
+  save_button:
+    criteria:
+      title: "保存(S)"
+    wait_timeout: 3
+
+  file_name_input:
+    criteria:
+      title: "文件名:"
+    wait_timeout: 5
+
+  # Command palette input (appears after Ctrl+Shift+P)
+  command_palette_input:
+    criteria:
+      title: "Type the name of a command to run."
+    wait_timeout: 5
+
+  container_id_input:
+    criteria:
+      title: "Select a container configuration template or enter a custom template id - Select Dev Container Configuration"
+    wait_timeout: 5
+  
+  container_name_input:
+    criteria:
+      title: "Dev container name - Select Dev Container Configuration"
+
+  container_cleanup_checkbox:
+    criteria:
+      title: "Toggle all checkboxes"
+  
+  OK_button:
+    criteria:
+      title: "OK"
+    wait_timeout: 1
+
+  # Copilot status button in the status bar
+  copilot_status_button:
+    criteria:
+      title: "Copilot status"
+    wait_timeout: 1
+
+  copilot_text:
+    criteria:
+      title: "Copilot"
+    wait_timeout: 1
+
+  claude_haiku_4_5_text:
+    criteria:
+      title: "Claude Haiku 4.5"
+    wait_timeout: 1
+
+  add_models_button:
+    criteria:
+      xpath: "//*[contains(@Name, 'Add Models...')]"
+    wait_timeout: 1
+  
+  ollama_button:
+    criteria:
+      title: "Ollama"
+    wait_timeout: 1
+
+  copilot_agent_process_button:
+    criteria:
+      xpath: "//*[contains(@Name, 'agent session')]"
+    wait_timeout: 1
+
+  # Snooze button - appears when hovering over Copilot status (indicates Copilot is ready)
+  snooze_button:
+    criteria:
+      title: "Snooze"
+    wait_timeout: 1
+  
+  pick_model_button:
+    criteria:
+      xpath: "//*[contains(@Name, ' (Ctrl+Alt+.) - ')]"
+    wait_timeout: 1
+  
+  gpt_4_1_button:
+    criteria:
+      title: "GPT-4.1, 0x"
+    wait_timeout: 1
+
+  deepseek_chat_button:
+    criteria:
+      title: "deepseek-chat, Ollama"
+    wait_timeout: 1
+
+  deepseek_v3_2_button:
+    criteria:
+      title: "deepseek-v3.2, Ollama"
+    wait_timeout: 1
+
+  gpt_5_1_codex_button:
+    criteria:
+      title: "gpt-5.1-codex, Ollama"
+    wait_timeout: 1
+
+  gemini_3_flash_button:
+    criteria:
+      title: "gemini-3-flash, Ollama"
+    wait_timeout: 1
+  
+  claude_sonnet_4_5_button:
+    criteria:
+      title: "claude-sonnet-4.5, Ollama"
+    wait_timeout: 1
+  
+  trust_button:
+    criteria:
+      title: "Trust Folder & Continue"
+    wait_timeout: 1
+  
+  root:
+    criteria:
+      xpath: "/*"
+    wait_timeout: 3
+  yes_button:
+    criteria:
+      title: "Yes"
+    wait_timeout: 1
+  
+  cancel_button:
+    criteria:
+      title: "Cancel (Alt+Backspace)"
+    wait_timeout: 1
+  
+  keep_button:
+    criteria:
+      title: "Keep All Edits (Ctrl+Enter)"
+    wait_timeout: 1
+
+# ============================================================
+# ACTIONS - Named operations that can be triggered via API
+# ============================================================
+actions:
+  # Activate Copilot via keyboard shortcut
+  activate:
+    description: "Open Copilot chat panel using Ctrl+Alt+I"
+    steps:
+      - type: keyboard
+        value: "^%i"  # Ctrl+Alt+I
+        target: root
+      - type: wait
+        duration: 0.5
+
+  # Accept AI's code suggestion
+  accept_suggestion:
+    description: "Accept the AI's code suggestion"
+    steps:
+      - type: click
+        target: accept_button
+
+  # Clear the chat and start fresh
+  new_chat:
+    description: "Start a new chat session"
+    steps:
+      - type: click
+        target: new_chat_button
+      - type: wait
+        duration: 0.5
+
+  # Open settings
+  open_settings:
+    description: "Open Copilot settings"
+    steps:
+      - type: click
+        target: settings_button
+
+  # Scroll down in chat
+  scroll_down:
+    description: "Scroll down in the chat"
+    steps:
+      - type: scroll
+        target: history_container
+        value: "down"
+
+  # Scroll up in chat
+  scroll_up:
+    description: "Scroll up in the chat"
+    steps:
+      - type: scroll
+        target: history_container
+        value: "up"
+
+# ============================================================
+# WORKFLOWS - Multi-step operations with parameters
+# ============================================================
+workflows:
+
+  # Prepare VS Code - start or connect to VS Code
+  prepare_vscode:
+    description: "Start VS Code or connect to an existing instance"
+    parameters:
+      - name: executable_path
+        type: string
+        required: false
+        default: ""
+      - name: workspace_path
+        type: string
+        required: false
+        default: ""
+    steps:
+      - type: start_program
+        executable: "{{executable_path}}"
+        workspace: "{{workspace_path}}"
+        wait_time: 5.0
+        value: "Code.exe"
+        output: started
+      - type: keyboard
+        target: root
+        value: "#{UP}"
+
+      - type: time_mark
+        output: status_wait_start
+      - id: poll_status
+        type: check_element
+        target: retry_button
+        output: int_retry
+
+      - type: click
+        target: retry_button
+        when: "int_retry == True"
+      
+      - type: wait
+        duration: 5
+        when: "int_retry == True"
+      
+      - type: check_element
+        target: trust_button
+        output: int_trust
+      - type: click
+        target: trust_button
+        when: "int_trust == True"
+
+      - type: check_timeout
+        start_time: status_wait_start
+        value: "30"
+        output: status_timeout
+
+      - type: jump_to
+        target_id: handle_failure
+        condition: "status_timeout == True"
+      
+      - type: jump_to
+        target_id: poll_status
+        condition: "int_retry == True or int_trust == True"
+      
+      - type: set_output
+        key: ready
+        value: "true"
+      
+      - type: jump_to
+        target_id: end
+
+      - id: handle_failure
+        type: set_output
+        key: ready
+        value: "false" 
+      
+      - id: end
+        type: log
+        level: "info"
+        value: "Workflow completed successfully."
+
+  # Complete workflow: Send message, wait for completion, export and return history
+  send_and_export:
+    description: "Send a message, wait for completion, and export chat history"
+    parameters:
+      - name: message
+        type: string
+        required: true
+      - name: timeout_seconds
+        type: int
+        default: 120
+      - name: export_directory
+        type: string
+        default: "."
+    steps:
+      # First reconnect to the window (in case it changed after prepare_vscode)
+      # - type: reconnect
+      #   timeout: 30
+      #   poll_interval: 2.0
+      #   output: reconnected
+      # # Wait for Copilot to be ready
+      # --- POLL LOOP: STATUS/PROCESS BUTTON ---
+      - type: wait
+        duration: 2
+      - type: time_mark
+        output: status_wait_start
+
+      - id: poll_status
+        type: wait
+        duration: 0.5
+
+      # --- CHECK INTERRUPTS (Initial Phase) ---
+      - type: check_element
+        target: retry_button
+        output: int_retry
+
+      - type: click
+        target: retry_button
+        when: "int_retry == True"
+      
+      - type: wait
+        duration: 5
+        when: "int_retry == True"
+      
+      - type: check_element
+        target: trust_button
+        output: int_trust
+      - type: click
+        target: trust_button
+        when: "int_trust == True"
+
+      - type: check_timeout
+        start_time: status_wait_start
+        value: "30"
+        output: status_timeout
+
+      - type: jump_to
+        target_id: handle_failure
+        condition: "status_timeout == True"
+      
+      - type: jump_to
+        target_id: poll_status
+        condition: "int_retry == True or int_trust == True"
+
+      # --- 2. WAIT FOR SNOOZE BUTTON (RE-INITIALIZE TIMEOUT) ---
+      - type: wait
+        duration: 0.2
+
+      - type: time_mark
+        output: copilot_status_wait_start
+
+      - id: wait_for_copilot_text
+        type: check_element
+        target: claude_haiku_4_5_text
+        output: claude_haiku_4_5_text_found
+
+      - type: check_element
+        target: copilot_text
+        output: copilot_text_found
+      
+      - type: click
+        target: add_models_button
+        when: "claude_haiku_4_5_text_found == True and copilot_text_found == False"
+      
+      - type: click
+        target: ollama_button
+        when: "claude_haiku_4_5_text_found == True and copilot_text_found == False" 
+      
+      - type: wait
+        duration: 1.0
+      
+      - type: check_timeout
+        start_time: copilot_status_wait_start
+        value: "180"
+        output: copilot_status_timeout
+
+      - type: jump_to
+        target_id: handle_failure
+        condition: "coilot_status_timeout == True"
+
+      - type: jump_to
+        target_id: wait_for_copilot_text
+        condition: "copilot_text_found == False"
+
+      - type: check_element
+        target: input
+        output: input_exists 
+        timeout: 5
+      - type: click
+        target: toggle_chat_button
+        when: "not input_exists"
+
+      - type: click
+        target: pick_model_button
+        optional: true
+      
+      - type: wait
+        duration: 1
+
+      - type: move_scroll
+        x: 771 
+        y: 474
+        value: -1000
+      
+      - type: wait
+        duration: 1
+
+      - type: click
+        target: <<model_button>>
+        optional: true
+
+      - type: input
+        target: input
+        value: "{{message}}"
+      
+      - type: time_mark
+        output: start_time
+      # --- LOOP START: WAIT FOR COMPLETION ---
+      - id: poll_agent_state
+        type: wait
+        duration: 0.5
+
+      # 1. ALWAYS CHECK TIMEOUT FIRST
+      - type: check_timeout
+        start_time: start_time
+        value: '600'
+        output: timed_out
+
+      - type: jump_to
+        target_id: handle_timeout_and_export
+        condition: "timed_out == True"
+
+      # 2. CHECK INTERRUPTS (Allow/Yes Buttons)
+      - type: check_element
+        target: allow_button
+        output: allow_found
+      
+      - type: click
+        target: allow_button
+        when: "allow_found == True"
+
+
+      - type: check_element
+        target: yes_button
+        output: yes_found
+      
+      - type: click
+        target: yes_button
+        when: "yes_found == True"
+
+      # If we handled an interrupt, jump back to top to refresh state
+      - type: jump_to
+        target_id: poll_agent_state
+        condition: "allow_found == True or yes_found == True"
+
+      # 3. SCROLL TO KEEP UI UPDATED
+      - type: scroll
+        x: 775
+        y: 212
+      
+      # 4. CHECK IF GENERATION STOPPED (Retry button appears when finished)
+      - type: check_element
+        target: retry_button
+        output: is_finished
+
+      # If still generating, go back to start
+      - type: jump_to
+        target_id: poll_agent_state
+        condition: "is_finished == False"
+
+      # 5. GENERATION STOPPED: IS THE TASK DONE?
+      - type: check_task_end
+        output: task_end
+
+      # If Copilot is stuck/asking for info (Generation stopped but task not ended)
+      - type: input
+        target: input
+        value: "Please proceed according to your best judgement."
+        when: "task_end == False"
+
+      # After sending prompt, we must wait for new generation
+      - type: jump_to
+        target_id: poll_agent_state
+        condition: "task_end == False"
+
+      # 6. SUCCESS PATH (task_end is True)
+      - type: jump_to
+        target_id: export_chat
+
+      # --- TIMEOUT HANDLER ---
+      - id: handle_timeout_and_export
+        type: click
+        target: cancel_button  # Click cancel as requested
+      - type: wait
+        duration: 1.0
+      # Fall through to export
+
+      # --- EXPORT CHAT (Shared Logic) ---
+      - id: export_chat
+        type: keyboard
+        target: root
+        value: "^+p"  # Ctrl+Shift+P
+      - type: wait
+        duration: 0.5
+      - type: input
+        target: command_palette_input
+        value: "Chat: Export Chat"
+      - type: wait
+        duration: 1
+      - type: click
+        target: show_local
+      - type: wait
+        duration: 1.5
+      - type: direct_input
+        value: "{{chat_file_name}}"
+      - type: wait
+        duration: 0.5
+      - type: read_exported_chat
+        directory: "{{export_directory}}"
+        output: chat_history
+
+      - type: click
+        target: keep_button
+        optional: true
+      
+      - type: jump_to
+        target_id: end
+      
+      - id: handle_failure
+        type: log
+        level: "error"
+        value: "Workflow failed: Element not found or timeout reached."
+      
+      - id: end
+        type: log
+        level: "info"
+        value: "Workflow completed successfully."
+  
+
+  export_outputs:
+    description: "Export chat history"
+    parameters:
+      - name: export_directory
+        type: string
+        default: "."
+    steps:
+      - type: keyboard
+        target: root
+        value: "^+p"  # Ctrl+Shift+P
+      - type: wait
+        duration: 0.5
+      - type: input
+        target: command_palette_input
+        value: "Chat: Export Chat"
+      - type: wait
+        duration: 2
+      - type: direct_input
+        value: "{{chat_file_name}}"
+      - type: wait
+        duration: 0.5
+      # Read exported file and return history
+      - type: read_exported_chat
+        directory: "{{export_directory}}"
+        output: chat_history
+
+
+  # Wait for Copilot to be ready by checking the status button
+  wait_for_copilot_ready:
+    description: "Wait for Copilot to be ready by hovering over status button and checking for Snooze button"
+    parameters:
+      - name: timeout_seconds
+        type: int
+        default: 120
+      - name: poll_interval
+        type: float
+        default: 3.0
+    steps:
+      # Poll until Copilot status button is found and Snooze appears on hover
+      - type: wait_for_element
+        target: copilot_agent_process_button
+        timeout: "{{timeout_seconds}}"
+        poll_interval: "{{poll_interval}}"
+        output: status_button_found
+      # Hover over the status button to show the popup
+      - type: hover
+        target: copilot_agent_process_button
+        duration: 1.0
+      # Wait for Snooze button to appear (indicates Copilot is ready)
+      - type: wait_for_element
+        target: snooze_button
+        timeout: 10
+        poll_interval: 1.0
+        output: copilot_ready
+      # Move mouse away to close popup
+      - type: set_output
+        key: ready
+        value: "true"
+
+  # Close VS Code gracefully
+  close_vscode:
+    description: "Close VS Code gracefully"
+    parameters:
+      - name: force
+        type: bool
+        default: false
+      - name: save_files
+        type: bool
+        default: false
+    steps:
+      - type: close_program
+        value: "Code.exe"
+        force: "{{force}}"
+        output: closed
+
+# ============================================================
+# STATE - Define how to query current UI state
+# ============================================================
+state:
+  # Is the Copilot pane visible?
+  is_active:
+    method: is_visible
+    target: pane
+
+  # What's currently in the input box?
+  current_input:
+    method: get_text
+    target: input
+
+  # How many messages in the history?
+  message_count:
+    method: count_children
+    target: history_container
+
+  # Is Retry button visible (task finished)?
+  is_task_finished:
+    method: exists
+    target: retry_button
+
+  # Is command palette open?
+  is_command_palette_open:
+    method: exists
+    target: command_palette_input

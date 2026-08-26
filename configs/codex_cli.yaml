@@ -1,0 +1,240 @@
+# Codex CLI Agent Configuration
+# This config automates the Codex CLI coding agent in headless Docker containers
+
+name: codex_cli
+display_name: Codex CLI
+version: "1.0"
+driver: cli  # Use CLI controller instead of IDE
+ # Runtime credentials are resolved from environment variables (for example,
+ # CODEX_API_KEY and CODEX_BASE_URL) by src/agent_red/utils/get_model_api.py.
+ # Never put a real credential in a version-controlled agent configuration.
+llm_api_key: ""
+llm_base_url: ""
+llm_model: gpt-4o-mini
+
+# ============================================================
+# WORKFLOWS - Multi-step CLI automation
+# ============================================================
+workflows:
+
+  # Start Codex CLI session with a task
+  send_and_export:
+    description: "Send a task to Codex CLI, handle interactions, and export chat history"
+    parameters:
+      - name: message
+        type: string
+        required: true
+      - name: model
+        type: string
+        required: false
+        default: "gpt-5.5"
+      - name: api_key
+        type: string
+        required: false
+        default: ""
+      - name: api_base_url
+        type: string
+        required: false
+        default: ""
+      - name: config_file_path
+        type: string
+        required: false
+        default: "/home/devuser/.codex/config.toml"
+      - name: model_provider
+        type: string
+        required: false
+        default: "openai-custom"
+      - name: wire_api
+        type: string
+        required: false
+        default: "responses"
+      - name: reasoning_effort
+        type: string
+        required: false
+        default: "medium"
+      - name: timeout_seconds
+        type: int
+        default: 600
+      - name: quiet_seconds
+        type: int
+        default: 15
+      - name: auto_approve
+        type: bool
+        default: true
+    steps:
+      # Codex uses TOML config (not JSON), so do not use update_json_file here.
+      # Rewrite ~/.codex/config.toml from workflow parameters so experiments can
+      # select any OpenAI-compatible base URL / key / model at runtime.
+      - type: execute_script
+        value: |
+          set -e
+          export CODEX_CONFIG_PATH="{{config_file_path}}"
+          export CODEX_MODEL="{{model}}"
+          export CODEX_API_KEY="{{api_key}}"
+          export CODEX_BASE_URL="{{api_base_url}}"
+          export CODEX_MODEL_PROVIDER="{{model_provider}}"
+          export CODEX_WIRE_API="{{wire_api}}"
+          export CODEX_REASONING_EFFORT="{{reasoning_effort}}"
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          def toml_string(value: str) -> str:
+              return json.dumps(str(value))
+
+          with open("/home/devuser/.codex/auth.json", 'w') as f:
+              json.dump({
+                  "OPENAI_API_KEY": os.environ.get("CODEX_API_KEY", "")
+              }, f)
+          config_path = Path(os.environ["CODEX_CONFIG_PATH"]).expanduser()
+          model = os.environ["CODEX_MODEL"]
+          api_key = os.environ.get("CODEX_API_KEY", "")
+          base_url = os.environ["CODEX_BASE_URL"]
+          provider = os.environ.get("CODEX_MODEL_PROVIDER", "openai-custom")
+          wire_api = os.environ.get("CODEX_WIRE_API", "responses")
+          reasoning_effort = os.environ.get("CODEX_REASONING_EFFORT", "medium")
+
+          config_path.parent.mkdir(parents=True, exist_ok=True)
+          config_path.write_text(f'''model = {toml_string(model)}
+          model_provider = {toml_string(provider)}
+          approval_policy = "never"
+          sandbox_mode = "danger-full-access"
+          model_reasoning_effort = {toml_string(reasoning_effort)}
+
+          [model_providers.{provider}]
+          name = "OpenAI custom"
+          base_url = {toml_string(base_url)}
+          wire_api = {toml_string(wire_api)}
+          requires_openai_auth = true
+
+          [projects."/home/devuser/project"]
+          trust_level = "trusted"
+          ''')
+          PY
+        output: settings_updated
+
+      # Start Codex with --yolo flag for auto-approval. The --model flag mirrors
+      # the TOML model value above; provider/base_url/key come from config.toml.
+      - type: cli_start
+        command: ["codex", "--model", "{{model}}", "--yolo", "{{message}}"]
+        rows: 50
+        cols: 120
+        output: started
+      
+      - type: time_mark
+        output: start_time
+      
+      - type: time_mark
+        output: last_interaction_time
+      
+      # Main loop - monitor for completion
+      - id: poll_state
+        type: wait
+        duration: 0.5
+      
+      # Check global timeout
+      - type: check_timeout
+        start_time: start_time
+        value: "{{timeout_seconds}}"
+        output: timed_out
+      
+      - type: jump_to
+        target_id: cleanup
+        condition: "timed_out == True"
+      
+      # Get current screen state and detect whether the visible terminal has
+      # stopped changing. This is more robust than relying only on Codex's
+      # "Worked for ..." footer, because that line can be absent or scrolled
+      # out of the visible screen when the final output is long.
+      - type: cli_screen_stability
+        value: "{{quiet_seconds}}"
+        text_output: screen_text
+        output: screen_stable
+        stable_for_output: screen_stable_for
+        changed_output: screen_changed
+        state_key: codex_screen_stability
+      
+      - type: set_output
+        key: is_busy
+        value: "'Working (' in screen_text or 'esc to interrupt' in screen_text"
+      
+      # Detect success message
+      - type: set_output
+        key: task_success_detected
+        value: "'Worked for' in screen_text"
+      
+      # Check for prompt (› or >)
+      - type: set_output
+        key: is_prompt_visible
+        value: "'›' in screen_text or '> ' in screen_text"
+      
+      # Check for confirmation prompts
+      - type: set_output
+        key: is_confirmation
+        value: False
+      
+      - type: set_output
+        key: is_confirmation
+        value: "'[y/N]' in screen_text or '[y/n]' in screen_text"
+      
+      # Auto-approve confirmations
+      - type: time_mark
+        output: current_time
+      
+      - type: set_output
+        key: time_since_interaction
+        value: "current_time - last_interaction_time"
+      
+      - type: cli_input
+        value: "y\n"
+        when: "auto_approve == True and is_confirmation == True and time_since_interaction > 1.0"
+      
+      - type: time_mark
+        output: last_interaction_time
+        when: "auto_approve == True and is_confirmation == True and time_since_interaction > 1.0"
+      
+      - type: set_output
+        key: is_complete
+        value: "is_busy == False and is_confirmation == False and ((task_success_detected == True and time_since_interaction > 1.0) or screen_stable == True)"
+      
+      - type: jump_to
+        target_id: export_history
+        condition: "is_complete == True"
+      
+      # Continue polling
+      - type: jump_to
+        target_id: poll_state
+      
+      # Export chat history
+      - id: export_history
+        type: cli_stop
+      
+      - type: set_output
+        key: sessions_dir
+        value: "/home/devuser/.codex/sessions"
+      
+      # Read chat history from latest session
+      - type: read_exported_chat
+        directory: "{{sessions_dir}}"
+        pattern: "**/*.jsonl"
+        output: chat_history
+      
+      - type: jump_to
+        target_id: end
+      
+      # Cleanup on timeout
+      - id: cleanup
+        type: cli_stop
+      
+      - id: end
+        type: log
+        level: "info"
+        value: "Codex CLI workflow completed"
+
+  # Close Codex session
+  close_session:
+    description: "Terminate Codex CLI session"
+    steps:
+      - type: cli_stop
+        output: stopped

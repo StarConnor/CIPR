@@ -1,0 +1,33 @@
+---
+description: Feature implementation checklist — requirements, code quality, testing, and documentation standards
+globs:
+alwaysApply: false
+---
+# Feature Implementation Checklist
+
+## Requirements
+- Understand acceptance criteria before coding
+- Design a solution that meets all requirements
+- Consider edge cases and potential issues
+
+## Implementation
+- Follow project coding standards and architecture (CE/EE patterns)
+- Handle errors and edge cases gracefully
+- No console.log, TODO comments, or commented-out code
+- Components should not make API calls directly — use services
+- Controllers should not access repositories directly — use services
+
+## Testing
+- Unit tests for all new functions/methods
+- Integration tests for complex interactions
+- E2E tests for user-facing features (Cypress)
+- Verify acceptance criteria are met
+
+## Documentation
+- JSDoc/JavaDoc for public APIs and services
+- Document complex components and their usage
+
+## Accessibility (UI features)
+- ARIA attributes on interactive elements
+- Keyboard navigation support
+- Semantic HTML elements

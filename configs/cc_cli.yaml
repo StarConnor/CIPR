@@ -1,0 +1,295 @@
+# Claude Code CLI Agent Configuration (Simplified)
+# This config automates the Claude Code CLI agent in headless Docker containers
+
+name: cc_cli
+display_name: Claude Code CLI
+version: "1.0"
+driver: cli  # Use CLI controller instead of IDE
+ # Runtime credentials are resolved from environment variables (CHEAP_API_KEY
+ # and CHEAP_BASE_URL for Claude models). Never put a
+ # real credential in a version-controlled agent configuration.
+llm_api_key: ""
+llm_base_url: ""
+llm_model: gpt-4o-mini
+
+# ============================================================
+# WORKFLOWS - Multi-step CLI automation
+# ============================================================
+workflows:
+
+  # Start Claude Code CLI session with a task
+  send_and_export:
+    description: "Send a task to Claude Code CLI, handle interactions, and export chat history"
+    parameters:
+      - name: message
+        type: string
+        required: true
+      - name: timeout_seconds
+        type: int
+        default: 600
+      - name: auto_approve
+        type: bool
+        default: true
+      - name: api_base_url
+        type: string
+        required: false
+        default: ""
+      - name: api_key
+        type: string
+        required: false
+        default: ""
+      - name: model
+        type: string
+        required: false
+        # default: "claude-sonnet-4-5-20250929"
+        default: "deepseek-v4-flash"
+      - name: max_output_tokens
+        type: string
+        required: false
+        default: "32000"
+      - name: settings_file_path
+        type: string
+        required: false
+        default: "/home/devuser/.claude/settings.json"
+      - name: pause_before_prompt_seconds
+        type: int
+        required: false
+        default: 0
+    steps:
+      # Update settings.json with API configuration
+      - type: update_json_file
+        file_path: "{{settings_file_path}}"
+        value:
+          env.ANTHROPIC_BASE_URL: "{{api_base_url}}"
+          # This gateway authenticates Claude Code through the bearer-token
+          # variable rather than ANTHROPIC_API_KEY.
+          env.ANTHROPIC_AUTH_TOKEN: "{{api_key}}"
+          env.ANTHROPIC_API_KEY: ""
+          env.ANTHROPIC_MODEL: "{{model}}"
+          env.ANTHROPIC_DEFAULT_OPUS_MODEL: "{{model}}"
+          env.ANTHROPIC_DEFAULT_SONNET_MODEL: "{{model}}"
+          env.ANTHROPIC_DEFAULT_HAIKU_MODEL: "{{model}}"
+          env.CLAUDE_CODE_SUBAGENT_MODEL: "{{model}}"
+          env.CLAUDE_CODE_MAX_OUTPUT_TOKENS: "{{max_output_tokens}}"
+        output: settings_updated
+
+      # Start Claude Code
+      - type: cli_start
+        # command: ["claude", "--dangerously-skip-permissions", "{{message}}", " --output-format json > analysis.json"]
+        # ``wait.duration`` is schema-validated before workflow interpolation,
+        # so put the optional debug pause in this shell command instead.
+        # Settings have already been updated when this begins; Claude has not
+        # yet received the task prompt until the sleep finishes.
+        command: ["bash", "-c", "export PATH=/opt/python-env/bin:$PATH && export UV_INDEX_URL=\"${UV_INDEX_URL:-https://mirrors.ustc.edu.cn/pypi/simple}\" && export PIP_INDEX_URL=\"${PIP_INDEX_URL:-https://mirrors.ustc.edu.cn/pypi/simple}\" && export PIP_TRUSTED_HOST=\"${PIP_TRUSTED_HOST:-mirrors.ustc.edu.cn}\" && sleep \"$1\" && shift && exec \"$@\"", "--", "{{pause_before_prompt_seconds}}", "claude", "--permission-mode", "bypassPermissions", "{{message}}"]
+        rows: 35
+        cols: 90
+        output: started
+      
+      - type: time_mark
+        output: start_time
+      
+      - type: time_mark
+        output: last_interaction_time
+      
+      - type: time_mark
+        output: last_output_time
+      
+      - type: set_output
+        key: is_in_chat
+        value: False
+      
+      - type: wait
+        duration: 8.0
+      
+      # - type: cli_input
+      #   value: "<UP>"
+      
+      # - type: wait
+      #   duration: 1.0
+      
+      # - type: cli_input
+      #   value: "<ENTER>"
+      
+      # Main loop - monitor and interact
+      - id: poll_state
+        type: wait
+        duration: 0.5
+      
+      # Check global timeout
+      - type: check_timeout
+        start_time: start_time
+        value: "{{timeout_seconds}}"
+        output: timed_out
+      
+      - type: jump_to
+        target_id: cleanup
+        condition: "timed_out == True"
+      
+      # Get current screen state
+      - type: cli_screen_text
+        output: screen_text
+      
+      - type: time_mark
+        output: current_time
+      
+      # Calculate time since last interaction (to avoid rapid-fire inputs)
+      - type: set_output
+        key: time_since_interaction
+        value: "current_time - last_interaction_time"
+
+      - type: set_output
+        key: is_busy
+        value: "'ctrl+c to interrupt' in screen_text or '· thinking' in screen_text or 'thought for' in screen_text or 'ing… (' in screen_text"
+      
+      # Check if auto-approve is disabled or not enough time has passed
+      - type: jump_to
+        target_id: check_completion
+        condition: "auto_approve == False or time_since_interaction < 1.5"
+      
+      # Case 1: Menu with "Esc to cancel" - Select 2nd option
+      - type: jump_to
+        target_id: case_type_something
+        # Look for the specific menu item style "[ ] Type something"
+        condition: "'Type something' in screen_text"
+      
+      - type: log
+        level: info
+        value: "Menu detected: Selecting 2nd option (DOWN + ENTER)"
+      
+      - type: set_output
+        key: is_2nd_yes_option
+        value: "'2. Yes' in screen_text"
+
+      - type: jump_to
+        target_id: enter_enter
+        condition: "is_2nd_yes_option == False"
+
+      - type: cli_input
+        value: "<DOWN>"
+      
+      - type: wait
+        duration: 2.0
+      
+      - id: enter_enter
+        type: cli_input
+        value: "<ENTER>"
+      
+      - type: time_mark
+        output: last_interaction_time
+      
+      - type: jump_to
+        target_id: poll_state
+      
+      # Case 2: "Type something" prompt - Select it and send message
+      - id: case_type_something
+        type: log
+        level: info
+        value: "Chat prompt detected: Sending auto-reply"
+      
+      - type: cli_input
+        value: "<UP>"
+      
+      - type: wait
+        duration: 0.5
+      
+      - type: cli_input
+        value: "Please proceed according to your best judgement."
+      
+      - type: wait
+        duration: 0.3
+      
+      - type: cli_input
+        value: "\t"
+      
+      - type: wait
+        duration: 0.3
+      
+      - type: cli_input
+        value: "<ENTER>"
+      
+      - type: time_mark
+        output: last_interaction_time
+      
+      - type: jump_to
+        target_id: poll_state
+      
+      # Check for completion
+      - id: check_completion
+        type: cli_check_line
+        pattern: '[✻]\s+\w+ed\s+for\s+'
+        use_regex: true
+        output: has_completion_marker
+      
+      - type: set_output 
+        key: is_busy
+        value: "'ctrl+c to interrupt' in screen_text or '· thinking' in screen_text or 'thought for' in screen_text or 'ing… (' in screen_text"
+      
+      - type: cli_wait_for_text
+        pattern: '● Done!'
+        timeout: 0.1
+        output: has_completion_done
+        optional: true
+      
+      - type: set_output
+        key: is_interrupted
+        value: "'Interrupted · What should Claude do instead?' in screen_text"
+      
+      - type: cli_wait_for_text
+        pattern: '↵ send'
+        timeout: 0.1
+        use_regex: false
+        output: has_send_prompt
+        optional: true
+      
+      - type: cli_input
+        value: "\r"  # Enter to focus input
+        when: "has_send_prompt == True"
+      
+      - type: jump_to
+        target_id: export_history
+        condition: "is_interrupted == True or (has_completion_marker == True or has_completion_done == True)"
+      
+      # Continue polling
+      - type: jump_to
+        target_id: poll_state
+      
+      # Cleanup on timeout
+      - id: cleanup
+        type: cli_stop
+      
+      - type: set_output
+        key: chat_history
+        value: "Task timed out"
+      
+      - type: set_output
+        key: status
+      
+        value: "Task timed out"
+      # Export chat history
+      - id: export_history
+        type: cli_stop
+      
+      - type: set_output
+        key: project_dir
+        value: "/home/devuser/.claude/projects/-home-devuser-project"
+      
+      # Read chat history from latest session
+      - type: read_exported_chat
+        directory: "{{project_dir}}"
+        pattern: "*.jsonl"
+        output: chat_history
+      
+      - type: jump_to
+        target_id: end
+      
+      - id: end
+        type: log
+        level: "info"
+        value: "Claude CLI workflow completed"
+
+  # Close Claude Code session
+  close_session:
+    description: "Terminate Claude Code CLI session"
+    steps:
+      - type: cli_stop
+        output: stopped

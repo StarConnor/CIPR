@@ -1,0 +1,22 @@
+# VS Code Extension Automation Server - Full Dependencies
+# 
+# For production deployments, use split requirements:
+# - Docker/CLI environments: pip install -r requirements-cli.txt
+# - Windows/IDE environments: pip install -r requirements-ide.txt
+#
+# This file includes everything for development
+
+-r requirements-base.txt
+
+# GUI/IDE automation (Windows)
+pywinauto>=0.6.8
+pywin32>=306
+pyperclip>=1.11.0
+Appium-Python-Client>=5.2.4
+pyautogui>=0.9.54
+pillow>=12.0.0
+opencv-python>=4.12.0.88
+
+# CLI automation (Linux/Docker)
+pyte>=0.8.0
+remote-pdb>=0.8.1

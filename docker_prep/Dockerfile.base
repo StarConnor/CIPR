@@ -1,0 +1,122 @@
+FROM ubuntu:22.04
+
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    openssh-server \
+    sudo \
+    curl \
+    git \
+    unzip \
+    python3 \
+    python3-pip \
+    python3.10-venv \
+    vim \
+    iproute2 \
+    iputils-ping \
+    net-tools \
+    build-essential \
+    wget \
+    jq \
+    iptables \
+    netcat \
+    nmap \
+    cron \
+    software-properties-common \
+    tzdata \
+    nginx \
+    libssl-dev \
+    xz-utils \
+    ca-certificates \
+    gosu \
+    cmake \
+    pkg-config \
+    protobuf-compiler \
+    php-cli \
+    php-curl \
+    php-xml \
+    php-mbstring \
+    php-zip \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY base/assets/node-v22.21.1-linux-x64.tar.gz /tmp/
+RUN tar -xzf /tmp/node-v22.21.1-linux-x64.tar.gz -C /usr/local --strip-components=1 && \
+    rm /tmp/node-v22.21.1-linux-x64.tar.gz
+
+# 2. Create a non-root user
+ARG USERNAME=devuser
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+ARG PUBLIC_KEY
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ARG MITM_TARGET_HOSTS
+
+ENV http_proxy=$HTTP_PROXY \
+    https_proxy=$HTTPS_PROXY \
+    no_proxy=$NO_PROXY \
+    HTTP_PROXY=$HTTP_PROXY \
+    HTTPS_PROXY=$HTTPS_PROXY \
+    NO_PROXY=$NO_PROXY \
+    MITM_TARGET_HOSTS=$MITM_TARGET_HOSTS
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/bash \
+    && echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# Setup user directories
+USER $USERNAME
+RUN mkdir -p /home/$USERNAME/.ssh && chmod 700 /home/$USERNAME/.ssh
+RUN touch /home/$USERNAME/.ssh/authorized_keys && chmod 600 /home/$USERNAME/.ssh/authorized_keys
+RUN mkdir -p /home/$USERNAME/project
+RUN https_proxy=__BUILD_HTTPS_PROXY__ http_proxy=__BUILD_HTTP_PROXY__ curl -LsSf https://astral.sh/uv/install.sh | \
+    https_proxy=__BUILD_HTTPS_PROXY__ http_proxy=__BUILD_HTTP_PROXY__ sh
+
+USER root
+ENV PATH="/home/$USERNAME/.local/bin:$PATH"
+RUN mkdir /var/run/sshd \
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config \
+    && sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+
+# Setup SSH for the user
+USER $USERNAME
+RUN echo "$PUBLIC_KEY" > /home/$USERNAME/.ssh/authorized_keys
+
+USER root
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && add-apt-repository ppa:deadsnakes/ppa -y \
+    && apt-get update \
+    && apt-get install -y \
+    python3.13 \
+    python3.13-dev \
+    python3.13-venv \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3.13 -m venv /opt/mitmproxy-env
+RUN /opt/mitmproxy-env/bin/pip install --upgrade pip
+
+ENV PATH="/opt/mitmproxy-env/bin:$PATH"
+RUN python3 --version | grep 3.13
+RUN https_proxy=__BUILD_HTTPS_PROXY__ http_proxy=__BUILD_HTTP_PROXY__ /opt/mitmproxy-env/bin/pip install flask Pillow pyte mitmproxy==12.2.1 --index-url https://mirrors.ustc.edu.cn/pypi/simple
+
+USER root
+RUN mkdir /app
+COPY base/assets/automation_server /app/automation_server
+WORKDIR /app
+RUN https_proxy=__BUILD_HTTPS_PROXY__ http_proxy=__BUILD_HTTP_PROXY__ /opt/mitmproxy-env/bin/pip install -r /app/automation_server/requirements-cli.txt --index-url https://mirrors.ustc.edu.cn/pypi/simple
+
+
+ENV PYTHONPATH=/app:$PYTHONPATH
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+COPY mitm_logger.py /opt/mitm_logger.py
+COPY start_agent.sh /app/start_agent.sh
+RUN chmod +x /app/start_agent.sh
+
+RUN mkdir -p /home/devuser/.mitmproxy
+RUN chown -R devuser:devuser /home/devuser/.mitmproxy /app
+COPY --chown=devuser:devuser base/assets/mitm-certs/mitmproxy-ca.pem /home/devuser/.mitmproxy/
+COPY --chown=devuser:devuser base/assets/mitm-certs/mitmproxy-ca-cert.pem /home/devuser/.mitmproxy/
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

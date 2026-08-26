@@ -1,0 +1,20 @@
+FROM base-env
+
+USER devuser
+WORKDIR /home/devuser
+# RUN npm install -g cline@1.0.8
+
+USER root
+COPY cline.tgz /home/devuser/cline.tgz
+RUN npm install -g /home/devuser/cline.tgz && rm /home/devuser/cline.tgz
+# RUN cline instance new
+
+USER devuser
+COPY --chown=devuser:devuser cline/.cline /home/devuser/.cline
+
+
+USER root
+WORKDIR /home/devuser/project
+
+ENV ENABLE_STRACE=true
+# docker build -t cli-env:cline -f Dockerfile.cline .

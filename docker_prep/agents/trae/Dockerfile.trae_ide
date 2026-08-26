@@ -1,0 +1,17 @@
+FROM my-ide-env:no_proxy
+
+ARG HTTPS_PROXY
+ARG HTTP_PROXY
+ARG NO_PROXY
+
+COPY --chown=devuser:devuser .trae-server /home/devuser/.trae-server
+COPY --chown=devuser:devuser .trae-aicc /home/devuser/.trae-aicc
+COPY --chown=devuser:devuser .trae /home/devuser/.trae
+COPY --chown=devuser:devuser .pki /home/devuser/.pki
+
+RUN echo "export HTTPS_PROXY=${HTTPS_PROXY}" >> /home/devuser/.bashrc \
+    && echo "export HTTP_PROXY=${HTTP_PROXY}" >> /home/devuser/.bashrc \
+    && echo "export NO_PROXY=${NO_PROXY}" >> /home/devuser/.bashrc \
+    && echo "export https_proxy=${HTTPS_PROXY}" >> /home/devuser/.bashrc \
+    && echo "export http_proxy=${HTTP_PROXY}" >> /home/devuser/.bashrc \
+    && echo "export no_proxy=${NO_PROXY}" >> /home/devuser/.bashrc

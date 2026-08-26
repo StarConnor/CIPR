@@ -1,0 +1,260 @@
+# Gemini CLI Agent Configuration
+# Automates Google's Gemini CLI in headless Docker containers.
+
+name: gemini_cli
+display_name: Gemini CLI
+version: "1.0"
+driver: cli
+# Runtime credentials and endpoint are resolved from GEMINI_API_KEY (or
+# GOOGLE_API_KEY) and GEMINI_BASE_URL / GOOGLE_GEMINI_BASE_URL. Keep this
+# version-controlled configuration free of deployment-specific values.
+llm_api_key: ""
+llm_base_url: ""
+llm_model: gemini-3-flash-preview
+
+workflows:
+  send_and_export:
+    description: "Send a task to Gemini CLI, wait for completion, and export chat history"
+    parameters:
+      - name: message
+        type: string
+        required: true
+      - name: model
+        type: string
+        required: false
+        default: "gemini-3-flash-preview"
+      - name: api_key
+        type: string
+        required: false
+        default: ""
+      - name: api_base_url
+        type: string
+        required: false
+        default: "https://generativelanguage.googleapis.com"
+      - name: api_key_auth_mechanism
+        type: string
+        required: false
+        default: "x-goog-api-key"
+      - name: config_file_path
+        type: string
+        required: false
+        default: "/home/devuser/.gemini/settings.json"
+      - name: export_file_path
+        type: string
+        required: false
+        default: "/home/devuser/.gemini/latest_export.json"
+      - name: stream_file_path
+        type: string
+        required: false
+        default: "/home/devuser/.gemini/latest_stream.jsonl"
+      - name: timeout_seconds
+        type: int
+        default: 600
+      - name: quiet_seconds
+        type: int
+        default: 15
+      - name: auto_approve
+        type: bool
+        default: true
+    steps:
+      - type: execute_script
+        value: |
+          set -e
+          mkdir -p "$(dirname "{{config_file_path}}")" "$(dirname "{{export_file_path}}")"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("{{config_file_path}}")
+          p.parent.mkdir(parents=True, exist_ok=True)
+          settings = {
+              "security": {"auth": {"selectedType": "gemini-api-key", "enforcedType": "gemini-api-key"}},
+              "telemetry": {"enabled": False},
+              "general": {"sessionRetention": {"enabled": False}},
+          }
+          p.write_text(json.dumps(settings, indent=2), encoding="utf-8")
+          PY
+        output: settings_updated
+
+      - type: cli_start
+        command:
+          - "bash"
+          - "-lc"
+          - |
+            set +e
+            export GEMINI_API_KEY="$1"
+            export GEMINI_MODEL="$2"
+            export GEMINI_CLI_TRUST_WORKSPACE=true
+            export GEMINI_TELEMETRY_ENABLED=false
+            export GEMINI_API_KEY_AUTH_MECHANISM="$3"
+            export NODE_TLS_REJECT_UNAUTHORIZED=0
+            base_url="$4"
+            if [ -n "$base_url" ]; then
+              export GOOGLE_GEMINI_BASE_URL="$base_url"
+            else
+              unset GOOGLE_GEMINI_BASE_URL
+            fi
+            shift 4
+            message="$*"
+            export GEMINI_AGENT_MESSAGE="$message"
+            rm -f "{{stream_file_path}}" "{{export_file_path}}"
+            approval_flag="--approval-mode=default"
+            if [ "{{auto_approve}}" = "True" ] || [ "{{auto_approve}}" = "true" ]; then
+              approval_flag="--approval-mode=yolo"
+            fi
+            gemini --model "$GEMINI_MODEL" --prompt "$message" --output-format stream-json --skip-trust --sandbox=false $approval_flag 2>&1 | tee "{{stream_file_path}}" | awk '
+              { print; fflush();
+                if (!seen_done && (index($0, "\"type\":\"result\"") || index($0, "\"type\": \"result\"") || index($0, "\"type\":\"error\"") || index($0, "\"type\": \"error\""))) {
+                  print "GEMINI_RUN_FINISHED status=stream"; fflush(); seen_done=1
+                }
+              }
+            '
+            status=${PIPESTATUS[0]}
+            python3 - <<'PY' || true
+            import json
+            import os
+            from pathlib import Path
+            stream_path = Path("{{stream_file_path}}")
+            export_path = Path("{{export_file_path}}")
+            events = []
+            assistant_chunks = []
+            tools = []
+            final_response = ""
+            if stream_path.exists():
+                for line in stream_path.read_text(encoding="utf-8", errors="replace").splitlines():
+                    try:
+                        ev = json.loads(line)
+                    except Exception:
+                        continue
+                    events.append(ev)
+                    typ = ev.get("type")
+                    if typ == "message":
+                        role = ev.get("role") or ev.get("message", {}).get("role")
+                        content = ev.get("content") or ev.get("text") or ev.get("message", {}).get("content")
+                        if role == "assistant" and isinstance(content, str):
+                            assistant_chunks.append(content)
+                    elif typ in {"tool_use", "tool_result", "error"}:
+                        tools.append(ev)
+                    elif typ == "result":
+                        final_response = ev.get("response") or ev.get("result") or ev.get("text") or ""
+            assistant = final_response or "".join(assistant_chunks)
+            history = [{"role": "user", "content": os.environ.get("GEMINI_AGENT_MESSAGE", "")}]
+            for ev in tools:
+                history.append({"role": "system", "content": json.dumps(ev, ensure_ascii=False)})
+            if assistant:
+                history.append({"role": "assistant", "content": assistant})
+            else:
+                history.append({"role": "system", "content": json.dumps({"events": events}, ensure_ascii=False)})
+            export_path.parent.mkdir(parents=True, exist_ok=True)
+            export_path.write_text(json.dumps(history, ensure_ascii=False), encoding="utf-8")
+            PY
+            echo "GEMINI_RUN_FINISHED status=$status"
+            exit $status
+          - "--"
+          - "{{api_key}}"
+          - "{{model}}"
+          - "{{api_key_auth_mechanism}}"
+          - "{{api_base_url}}"
+          - "{{message}}"
+        rows: 50
+        cols: 120
+        output: started
+
+      - type: time_mark
+        output: start_time
+
+      - type: time_mark
+        output: last_interaction_time
+
+      - id: poll_state
+        type: wait
+        duration: 0.5
+
+      - type: check_timeout
+        start_time: start_time
+        value: "{{timeout_seconds}}"
+        output: timed_out
+
+      - type: jump_to
+        target_id: cleanup
+        condition: "timed_out == True"
+
+      - type: cli_screen_stability
+        value: "{{quiet_seconds}}"
+        text_output: screen_text
+        output: screen_stable
+        stable_for_output: screen_stable_for
+        changed_output: screen_changed
+        state_key: gemini_screen_stability
+
+      - type: set_output
+        key: is_confirmation
+        value: "'[y/N]' in screen_text or '[y/n]' in screen_text or 'Allow?' in screen_text or 'Do you want to proceed?' in screen_text"
+
+      - type: time_mark
+        output: current_time
+
+      - type: set_output
+        key: time_since_interaction
+        value: "current_time - last_interaction_time"
+
+      - type: cli_input
+        value: "y\n"
+        when: "auto_approve == True and is_confirmation == True and time_since_interaction > 1.0"
+
+      - type: time_mark
+        output: last_interaction_time
+        when: "auto_approve == True and is_confirmation == True and time_since_interaction > 1.0"
+
+      - type: set_output
+        key: has_finished_sentinel
+        value: "'GEMINI_RUN_FINISHED' in screen_text"
+
+      - type: set_output
+        key: has_terminal_event
+        value: "'\"type\":\"result\"' in screen_text or '\"type\": \"result\"' in screen_text or '\"type\":\"error\"' in screen_text or '\"type\": \"error\"' in screen_text"
+
+      - type: set_output
+        key: is_complete
+        value: "is_confirmation == False and (has_finished_sentinel == True or has_terminal_event == True or screen_stable == True)"
+
+      - type: jump_to
+        target_id: export_history
+        condition: "is_complete == True"
+
+      - type: jump_to
+        target_id: poll_state
+
+      - id: export_history
+        type: cli_stop
+
+      - type: execute_script
+        value: |
+          if [ ! -s "{{export_file_path}}" ] && [ -s "{{stream_file_path}}" ]; then
+            cp "{{stream_file_path}}" "{{export_file_path}}"
+          fi
+
+      - type: read_exported_chat
+        directory: "/home/devuser/.gemini"
+        pattern: "latest_export.json"
+        output: chat_history
+
+      - type: jump_to
+        target_id: end
+
+      - id: cleanup
+        type: cli_stop
+
+      - type: set_output
+        key: chat_history
+        value: "Task timed out"
+
+      - id: end
+        type: log
+        level: "info"
+        value: "Gemini CLI workflow completed"
+
+  close_session:
+    description: "Terminate Gemini CLI session"
+    steps:
+      - type: cli_stop
+        output: stopped

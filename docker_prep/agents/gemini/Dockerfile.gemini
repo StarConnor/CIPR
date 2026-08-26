@@ -1,0 +1,24 @@
+FROM base-env
+
+ENV PATH=/node-v22.21.1-linux-x64/bin/:$PATH
+
+COPY gemini.tgz /
+USER root
+WORKDIR /home/devuser
+RUN npm install -g /gemini.tgz --include=optional --no-audit --no-fund \
+    && rm /gemini.tgz
+
+USER devuser
+RUN mkdir -p /home/devuser/.gemini /home/devuser/project \
+    && printf '%s\n' '{"security":{"auth":{"selectedType":"gemini-api-key","enforcedType":"gemini-api-key"}},"telemetry":{"enabled":false},"general":{"sessionRetention":{"enabled":false}}}' > /home/devuser/.gemini/settings.json
+
+ENV GEMINI_CLI_TRUST_WORKSPACE=true
+ENV GEMINI_TELEMETRY_ENABLED=false
+ENV ENABLE_STRACE=true
+ENV LOG_LEVEL=INFO
+ENV PYTHONPATH=/app:$PYTHONPATH
+
+USER root
+WORKDIR /home/devuser/project
+
+# docker build -t cli-env:gemini -f Dockerfile.gemini .
