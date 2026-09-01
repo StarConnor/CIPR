@@ -1,9 +1,17 @@
-# CIPR: Red-Teaming AI Coding Agents
+<div align="center">
 
-This repository contains the experiment framework used in our paper: a red-team
-evaluation harness that injects malicious payloads into real coding tasks and
-measures whether AI coding agents (CLI or IDE) execute them, while also scoring
-whether the agent completes the underlying task.
+# 🧪 CIPR: Coding In Poisoned Repos
+### Beyond the Payload: How User Invocation Shapes Coding Agent Vulnerability to Repository Poisoning
+
+[![arXiv](https://img.shields.io/badge/arXiv-2608.30686-B31B1B.svg?logo=arxiv&logoColor=white)](https://arxiv.org/abs/2608.30686)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm%20Noncommercial%201.0.0-lightgrey.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0)
+
+**EMNLP 2026 (Main Conference)** · Official code release
+
+📄 **Paper:** [arXiv:2608.30686](https://arxiv.org/abs/2608.30686) — *Beyond the Payload: How User Invocation Shapes Coding Agent Vulnerability to Repository Poisoning*
+
+</div>
 
 ## Repository Layout
 
