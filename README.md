@@ -331,4 +331,15 @@ In server mode, a per-task report is additionally fetched to
 
 ## Citation
 
-If you use this codebase, please cite our paper (placeholder).
+If you use this codebase, please cite our paper:
+```bib
+@misc{zhu2026payloaduserinvocationshapes,
+      title={Beyond the Payload: How User Invocation Shapes Coding Agent Vulnerability to Repository Poisoning}, 
+      author={Fukang Zhu and Binbin Zhao and Ruixiao Lin and Ping He and Tianyu Du and Shouling Ji},
+      year={2026},
+      eprint={2608.30686},
+      archivePrefix={arXiv},
+      primaryClass={cs.CR},
+      url={https://arxiv.org/abs/2608.30686}, 
+}
+```
